@@ -14,10 +14,10 @@
 	<version>0.0.9</version>
 	<category>productivity</category>
 	<summary>Integration of Draw.io editor into ownCloud Files app for creating and modifying diagrams</summary>
-	<screenshot>https://raw.githubusercontent.com/tomneedham/oc-drawio/master/screenshot.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/owncloud/drawio/master/screenshot.png</screenshot>
 	<dependencies>
 		<owncloud min-version="10.0" max-version="10" />
 	</dependencies>
-	<bugs>https://github.com/tomneedham/oc-drawio/issues</bugs>
-	<repository type="git">https://github.com/tomneedham/oc-drawio.git</repository>
+	<bugs>https://github.com/owncloud/drawio/issues</bugs>
+	<repository type="git">https://github.com/owncloud/drawio.git</repository>
 </info>
