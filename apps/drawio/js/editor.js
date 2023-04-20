@@ -36,12 +36,12 @@
 		fileClient.getFileContents(path)
 			.then(function (status, contents) {
 				// If the file is empty, then we start with a new file template
-				if (contents === " ") {
+				if (contents === "") {
 					editWindow.postMessage(JSON.stringify({
 						action: "template",
 						name: path
 					}), "*");
-				} else if (contents.indexOf("mxGraphModel") !== -1) {
+				} else if (contents.indexOf("mxGraphModel") === -1) {
 					// If the contents is something else, we just error and exit
 					OC.Notification.showTemporary(t(OCA.Drawio.AppName, "Error: This is not a Drawio file!"));
 				} else {
