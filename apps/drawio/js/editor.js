@@ -45,7 +45,7 @@
 					}), "*");
 				} else if (contents.indexOf("mxGraphModel") === -1) {
 					// If the contents is something else, we just error and exit
-					OC.Notification.showTemporary(t(OCA.Drawio.AppName, "Error: This is not a Drawio file!"));
+					OC.Notification.show(t(OCA.Drawio.AppName, "Error: This is not a Drawio file!"));
 				} else {
 					// Load the xml from the file and setup drawio
 					editWindow.postMessage(JSON.stringify({
@@ -56,7 +56,7 @@
 			})
 			// Loading failed
 			.fail(function (status) {
-				OC.Notification.showTemporary(t(OCA.Drawio.AppName, "Error: Failed to load the file!"));
+				OC.Notification.show(t(OCA.Drawio.AppName, "Error: Failed to load the file!"));
 			})
 			// Loading done, hide message
 			.done(function () {
@@ -81,7 +81,7 @@
 		})
 		// Saving failed
 		.fail(function () {
-			OC.Notification.showTemporary(t(OCA.Drawio.AppName, "Error: Could not save file!"));
+			OC.Notification.show(t(OCA.Drawio.AppName, "Error: Could not save file!"));
 		})
 		// Saving is done, hide original message
 		.done(function () {
