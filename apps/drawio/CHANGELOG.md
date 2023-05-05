@@ -4,11 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
-## [1.0.0] - 2023-05-02
+## [1.0.0] - 2023-05-05
 
 ### Fixed
 
 - [#2](https://github.com/owncloud/drawio/pull/2) - fix: open existing drawio files + show templates for empty files
+- [#14](https://github.com/owncloud/drawio/pull/14) - fix: error messages are displayed permanently
+
+### Changed
+
+- [#13](https://github.com/owncloud/drawio/pull/13) - feat: lock the file to prevent data loss
+
 
 ## 0.0.9 - 2020-10-18
 
