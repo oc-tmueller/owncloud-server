@@ -1,2 +1,5 @@
 build
 .DS_Store
+
+l10n/l10n.pl
+l10n/templates
