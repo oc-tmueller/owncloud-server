@@ -28,7 +28,7 @@ endif
 PHPUNIT="$(PWD)/lib/composer/phpunit/phpunit/phpunit"
 
 drawio_doc_files=COPYING.txt screenshot.png
-drawio_src_dirs=appinfo img css js lib templates
+drawio_src_dirs=appinfo img css js l10n lib templates
 drawio_all_src=$(drawio_src_dirs) $(drawio_doc_files)
 build_dir=build
 dist_dir=$(build_dir)/dist
@@ -60,3 +60,33 @@ clean-dist:
 .PHONY: clean-build
 clean-build:
 	rm -Rf $(build_dir)
+
+
+#
+# Translation
+#--------------------------------------
+
+.PHONY: l10n-push
+l10n-push:
+	cd l10n && tx push -s --skip
+
+.PHONY: l10n-pull
+l10n-pull:
+	cd l10n && tx pull -a --skip --minimum-perc=75
+
+.PHONY: l10n-clean
+l10n-clean:
+	rm -rf l10n/l10n.pl
+	find l10n -type f -name \*.po -or -name \*.pot | xargs rm -f
+	find l10n -type f -name uz.\* -or -name yo.\* -or -name ne.\* -or -name or_IN.\* | xargs git rm -f || true
+
+.PHONY: l10n-read
+l10n-read: l10n/l10n.pl
+	cd l10n && perl l10n.pl $(app_name) read
+
+.PHONY: l10n-write
+l10n-write: l10n/l10n.pl
+	cd l10n && perl l10n.pl $(app_name) write
+
+l10n/l10n.pl:
+	wget -qO l10n/l10n.pl https://raw.githubusercontent.com/owncloud-ci/transifex/d1c63674d791fe8812216b29da9d8f2f26e7e138/rootfs/usr/bin/l10n
