@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - [#13](https://github.com/owncloud/drawio/pull/13) - feat: lock the file to prevent data loss
+- Added support for transifex
 
 
 ## 0.0.9 - 2020-10-18
