@@ -30,6 +30,8 @@
 	}
 
 	OCA.Drawio.LoadEditorHandler = function(eventHandler, path, editWindow) {
+		// Set page title for webbrowser tab window
+		window.document.title = path.split("/").pop() + ' - ' + oc_defaults.title;
 		// Handle the load event at the start of the page load
 		var loadMsg = OC.Notification.show(t(OCA.Drawio.AppName, "Loading diagram..."));
 		var fileClient = OC.Files.getClient();
