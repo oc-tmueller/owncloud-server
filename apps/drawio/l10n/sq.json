@@ -2,6 +2,7 @@
     "Loading diagram..." : "Po ngarkohet diagram…  ",
     "Error: This is not a Drawio file!" : "Gabim: Kjo s’është kartelë Drawio!",
     "Error: Failed to load the file!" : "Gabim: S’u arrit të ngarkohet kartela!",
+    "File is currently being used by somebody else" : "Kartela aktualisht po përdoret nga dikush tjetër",
     "Saving..." : "Po ruhet …",
     "Saved" : "U ruajt",
     "Error: Could not save file!" : "Gabim: S’u ruajt dot kartelë!",
