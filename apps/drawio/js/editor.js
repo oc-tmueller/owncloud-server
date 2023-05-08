@@ -59,7 +59,7 @@
 								action: "template",
 								name: path
 							}), "*");
-						} else if (contents.indexOf("mxGraphModel") === -1) {
+						} else if (contents.indexOf("mxGraphModel") === -1 && contents.indexOf("mxfile") === -1) {
 							// If the contents is something else, we just error and exit
 							OC.Notification.show(t(OCA.Drawio.AppName, "Error: This is not a Drawio file!"));
 						} else {
