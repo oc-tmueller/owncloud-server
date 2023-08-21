@@ -50,13 +50,26 @@
 				return;
 			}
 
-			// Attach to these two mimes
-			var mimes = {
-				"xml": {"mime": "application/xml", "type": "text"},
-				"drawio": {"mime": "application/octet-stream", "type": "text"}
-			};
+			// Attach to these three mimes
+			var mimes = [
+                              {
+                                "ext": "xml",
+                                "mime": "application/xml",
+                                "type": "text"
+                              },
+                              {
+                                "ext": "drawio",
+                                "mime": "application/x-drawio",
+                                "type": "text"
+                              },
+                              {
+                                "ext": "drawio",
+                                "mime": "application/octet-stream",
+                                "type": "text"
+                              }
+                        ];
 
-			$.each(mimes, function (ext, attr) {
+			$.each(mimes, function (index, attr) {
 				fileList.fileActions.registerAction({
 					name: "drawio-editor",
 					displayName: t(OCA.Drawio.AppName, "Open in Draw.io"),
@@ -70,7 +83,7 @@
 						OCA.Drawio.EditFileNewWindow(OC.joinPaths(dir, fileName));
 					}
 				});
-				if( ext === 'drawio') {
+				if(attr.ext === 'drawio') {
 					// Default for xml
 					fileList.fileActions.setDefault(attr.mime, "drawio-editor");
 				}
@@ -108,13 +121,12 @@
 $(document).ready(function () {
 
 	OCA_DrawIO_Change_Icons = function () {
+                var mimeTypes = ['application/octet-stream', 'application/x-drawio'];
 		$("#filestable")
 			.find("tr[data-type=file]")
 			.each(function () {
-				if (($(this)
-					.attr("data-mime") === "application/octet-stream") && ($(this)
-					.find("div.thumbnail")
-					.length > 0)
+				if (mimeTypes.indexOf($(this).attr('data-mime')) >= 0
+                                && ($(this).find("div.thumbnail").length > 0)
 				&& $(this).find("span.extension").text() === '.drawio') {
 					if ($(this)
 						.find("div.thumbnail")
