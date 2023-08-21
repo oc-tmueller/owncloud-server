@@ -3,9 +3,19 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased] - xxxx-xx-xx
+## [1.0.1] - 2023-08-21
 
-- 
+### Changed
+
+- [#19](https://github.com/owncloud/drawio/pull/19) - feat: Detect old version 20.1.1
+- [#20](https://github.com/owncloud/drawio/pull/20) - fix: set minimum version for draw.io app to 10.5
+
+### Fixed
+
+- [#21](https://github.com/owncloud/drawio/pull/21) - "Error: This is not a Drawio file!" when opening valid *.drawio-file
+- [#29](https://github.com/owncloud/drawio/pull/29) - [QA] drawio fails to register mime type for .drawio files
+
+
 
 ## [1.0.0] - 2023-05-05
 
@@ -26,7 +36,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## 0.0.1 - Initial Release
 
-[Unreleased]: https://github.com/owncloud/metrics/compare/v1.0.0...master
+[Unreleased]: https://github.com/owncloud/metrics/compare/v1.0.1...master
+[1.0.1]: https://github.com/owncloud/metrics/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/owncloud/metrics/compare/v0.0.8...v1.0.0
 [0.0.9]: https://github.com/owncloud/metrics/compare/v0.0.7...v0.0.9
 [0.0.7]: https://github.com/owncloud/metrics/compare/v0.0.1...v0.0.7
