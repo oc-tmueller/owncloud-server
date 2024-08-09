@@ -1,0 +1,24 @@
+.php_cs.cache
+.php-cs-fixer.cache
+vendor-bin/**/vendor
+vendor-bin/**/composer.lock
+/vendor/
+/build/
+/tests/output/
+.phpunit.result.cache
+tests/unit/PopTest.php
+l10n/.transifexrc
+l10n/templates
+l10n/*/*.po
+l10n/*.pot
+l10n/l10n.pl
+
+# SonarCloud scanner
+.scannerwork
+
+# Generated from .drone.star
+.drone.yml
+
+.idea/
+
+composer.phar

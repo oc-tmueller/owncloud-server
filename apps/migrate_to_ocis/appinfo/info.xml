@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<info>
+    <id>migrate_to_ocis</id>
+    <name>Migrate ownCloud 10 to oCIS</name>
+    <summary>Migrate ownCloud 10 to ownCloud Infinite Scale.</summary>
+    <description>Migrate ownCloud 10 to ownCloud Infinite Scale.</description>
+    <licence>GPLv2</licence>
+    <author>Thomas Müller</author>
+    <version>0.2.0</version>
+    <namespace>MigrateToInfiniteScale</namespace>
+    <category>integration</category>
+    <dependencies>
+        <owncloud min-version="10.14" max-version="10"/>
+        <php min-version="7.4" />
+    </dependencies>
+    <default_enable/>
+    <documentation>
+        <admin>https://doc.owncloud.com/server/latest/admin_manual/maintenance/migrating_to_ocis.html</admin>
+    </documentation>
+    <commands>
+        <command>OCA\MigrateToInfiniteScale\Command\Init</command>
+        <command>OCA\MigrateToInfiniteScale\Command\Migrate</command>
+        <command>OCA\MigrateToInfiniteScale\Command\Verify</command>
+    </commands>
+</info>
