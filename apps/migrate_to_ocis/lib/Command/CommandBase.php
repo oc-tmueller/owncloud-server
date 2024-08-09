@@ -12,21 +12,24 @@ use OCP\IConfig;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use Ramsey\Uuid\Uuid;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Process\Process;
 
-trait CommandTrait {
+class CommandBase extends Command {
 	use OutputAware;
 
 	private static string $rclone_bin = __DIR__ . "/../../bin/rclone_linux_amd64";
 
-	private IConfig $config;
-	private IURLGenerator $generator;
-	private DefaultTokenProvider $tokenProvider;
-	private string $ocis_host;
-	private string $shared_migration_api_key;
-	private bool $insecure = false;
-	private string $ocis_admin;
+	protected IConfig $config;
+	protected IURLGenerator $generator;
+	protected DefaultTokenProvider $tokenProvider;
+	protected string $ocis_host;
+	protected string $ocis_admin_user;
+	protected string $ocis_admin_password;
+	protected bool $insecure = false;
 
 	public function preExecute(InputInterface $input): int {
 		/*
@@ -54,19 +57,19 @@ trait CommandTrait {
 	/**
 	 * @throws JsonException
 	 */
-	private function getAdminAccessToken(): string {
+	protected function getAdminAccessToken(): string {
 		# TODO: take care of renewal
 		# TODO: no need to get a new token every time
-		return $this->actAsUser($this->ocis_admin);
+		return $this->actAsUser($this->ocis_admin_user);
 	}
 
 	/**
 	 * @throws JsonException
 	 */
-	private function actAsUser(string $email_address): string {
+	private function actAsUser(string $user_name): string {
 		$client = \OC::$server->getHTTPClientService()->newClient();
 		$client = new OCISClient($client, $this->ocis_host, $this->insecure);
-		return $client->tokenExchange($this->shared_migration_api_key, $email_address);
+		return $client->tokenExchange($this->ocis_admin_user, $this->ocis_admin_password, $user_name);
 	}
 
 	/**
@@ -74,27 +77,36 @@ trait CommandTrait {
 	 */
 	private function setupDone(): bool {
 		$ocis_host = $this->config->getAppValue('migrate_to_ocis', 'ocis_host', null);
-		$shared_migration_api_key = $this->config->getAppValue('migrate_to_ocis', 'shared_migration_api_key', null);
-		if ($shared_migration_api_key === null) {
-			return false;
-		}
-
 		$this->ocis_host = $ocis_host;
-		$this->shared_migration_api_key = $shared_migration_api_key;
 
 		return true;
 	}
 
-	private function cloneFilesForUser(IUser $user, ConflictLogFile $conflictLogFile): bool {
+	/**
+	 * @param InputInterface $input
+	 * @param OutputInterface $output
+	 * @return void
+	 */
+	protected function askAdminPassword(InputInterface $input, OutputInterface $output): void {
+		/** @var \Symfony\Component\Console\Helper\QuestionHelper $helper */
+		$helper = $this->getHelper('question');
+		$question = new Question(
+			"Password for $this->ocis_admin_user: ",
+		);
+		$question->setHidden(true);
+		$this->ocis_admin_password = $helper->ask($input, $output, $question);
+	}
+
+	protected function cloneFilesForUser(IUser $user, ConflictLogFile $conflictLogFile): bool {
 		$email = $user->getEMailAddress();
 		if ($email === null) {
 			return false;
 		}
 
-		$user_token = $this->actAsUser($user->getEMailAddress());
+		$user_token = $this->actAsUser($user->getUID());
 		$password = $this->generateAppPassword($user);
 		try {
-			$ocis_connection = $this->buildRCloneConnectionStringForOCIS($user_token);
+			$ocis_connection = $this->buildRCloneConnectionStringForOCIS($user->getUID(), $user_token);
 			$oc10_connection = $this->buildRCloneConnectionStringForOC($user, $password);
 			$this->writeln("ocis connect: $ocis_connection", true);
 			$this->writeln("oc10 connect: $oc10_connection", true);
@@ -141,14 +153,16 @@ trait CommandTrait {
 		}
 	}
 
-	private function buildRCloneConnectionStringForOCIS(string $user_token): string {
+	private function buildRCloneConnectionStringForOCIS(string $userId, string $password): string {
 		$url = "https://$this->ocis_host/remote.php/webdav/";
+		$obscured_password = self::RCloneObscure($password);
 		$rclone_connection_elements = [
 			"ocis-migrate",
 			'type=webdav',
 			"url=\"$url\"",
 			'vendor=owncloud',
-			"bearer_token=\"$user_token\"",
+			"user=\"$userId\"",
+			"pass=\"$obscured_password\"",
 		];
 
 		return implode(',', $rclone_connection_elements);

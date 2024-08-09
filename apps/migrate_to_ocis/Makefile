@@ -18,7 +18,7 @@ app_name=migrate_to_ocis
 build_dir=$(CURDIR)/build
 dist_dir=$(build_dir)/dist
 src_files=README.md
-src_dirs=appinfo bin img lib vendor
+src_dirs=appinfo bin lib vendor
 all_src=$(src_dirs) $(src_files)
 
 occ=$(CURDIR)/../../occ

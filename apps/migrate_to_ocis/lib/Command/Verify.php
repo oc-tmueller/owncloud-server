@@ -11,14 +11,11 @@ use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Util;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Verify extends Command {
-	use CommandTrait;
-
+class Verify extends CommandBase {
 	private IUserManager $userManager;
 
 	public function __construct(
@@ -35,6 +32,7 @@ class Verify extends Command {
 	}
 
 	protected function configure() {
+		parent::configure();
 		$this
 			->setName('migrate:to-ocis:verify')
 			->setDescription('Verifies the ownCloud instance to be ready for migration. See also: https://doc.owncloud.com/server/latest/admin_manual/maintenance/migrating_to_ocis.html')
@@ -54,8 +52,9 @@ class Verify extends Command {
 			return $code;
 		}
 
-		# get user access
-		$this->ocis_admin = $input->getArgument('ocis-admin');
+		# ensure the ocis instance is reachable
+		$this->ocis_admin_user = $input->getArgument('ocis-admin');
+		$this->askAdminPassword($input, $output);
 		$this->getAdminAccessToken();
 
 		# first we verify users
