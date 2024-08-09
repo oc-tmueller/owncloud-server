@@ -4,6 +4,7 @@ namespace OCA\MigrateToInfiniteScale\Helper;
 use Exception;
 use JsonException;
 use OCP\Http\Client\IClient;
+use OCP\IUser;
 
 class OCISClient {
 	private IClient $client;
@@ -20,55 +21,61 @@ class OCISClient {
 	 * @throws JsonException
 	 * @throws Exception
 	 */
-	public function tokenExchange(string $shared_migration_api_key, string $email_address) {
-		$resp = $this->client->post("https://$this->ocis_host/satellites/tokenExchange", [
-			'headers' => [
-				'Authorization' => "Bearer $shared_migration_api_key"
+	public function tokenExchange(string $admin_user, string $admin_password, string $user_name) {
+		$resp = $this->client->post("https://$this->ocis_host/auth-app/tokens", [
+			'http_errors' => false,
+			'auth' => [
+				$admin_user,
+				$admin_password
 			],
-			'json' => [
-				'email' => $email_address
+			'query' => [
+				'expiry' => '24h',
+				'userName' => $user_name
 			],
 			'verify' => !$this->insecure,
 		]);
-		$json = json_decode($resp->getBody(), true, 512, JSON_THROW_ON_ERROR);
-		if (!\is_array($json)) {
-			throw new \RuntimeException('Unexpected JSON response');
+		if ($resp->getStatusCode() === 502) {
+			throw new \RuntimeException('App Token API is not enabled!');
 		}
-		return $json['accessToken'];
+		if ($resp->getStatusCode() !== 200 && $resp->getStatusCode() !== 201) {
+			throw new \RuntimeException('Failed to create app token.');
+		}
+		$json = json_decode($resp->getBody(), true, 512, JSON_THROW_ON_ERROR);
+		$token = $json['token'] ?? null;
+		if ($token === null) {
+			throw new \RuntimeException('Failed to create app token.');
+		}
+
+		return $token;
 	}
 
-	public function createUser(string $token, string $email): bool {
-		$resp = $this->client->post("https://$this->ocis_host//v1.0/users", [
-			'headers' => [
-				'Authorization' => "Bearer $token"
+	/**
+	 * @throws JsonException
+	 */
+	public function createUser(string $token, IUser $user): bool {
+		$resp = $this->client->post("https://$this->ocis_host/graph/v1.0/users", [
+			'http_errors' => false,
+			'auth' => [
+				'admin',
+				$token
 			],
 			'json' => [
-				'mail' => $email
+				'mail' => $user->getEMailAddress(),
+				'displayName' => $user->getDisplayName(),
+				'onPremisesSamAccountName' => $user->getUID(),
 			],
 			'verify' => !$this->insecure,
 		]);
-		if ($resp->getStatusCode() !== 201) {
+		$body = $resp->getBody();
+		$body = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+		if ($resp->getStatusCode() === 201) {
 			return true;
 		}
-		# TODO: logging? throw something?
-		return false;
+		$errorCode = $body['error']['code'] ?? '';
+		if ($errorCode === 'nameAlreadyExists' && $resp->getStatusCode() === 409) {
+			return false;
+		}
 
-		/*
-		'id' => false,
-		'account_enabled' => false,
-		'app_role_assignments' => false,
-		'display_name' => false,
-		'drives' => false,
-		'drive' => false,
-		'identities' => false,
-		'mail' => false,
-		'member_of' => false,
-		'on_premises_sam_account_name' => false,
-		'password_profile' => false,
-		'surname' => false,
-		'given_name' => false,
-		'user_type' => false,
-		'preferred_language' => false
-		*/
+		throw new \RuntimeException("Failed to create user! Error: $errorCode");
 	}
 }

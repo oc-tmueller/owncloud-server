@@ -7,22 +7,15 @@ use OC\Authentication\Token\DefaultTokenProvider;
 use OCA\MigrateToInfiniteScale\Helper\ConflictLogFile;
 use OCA\MigrateToInfiniteScale\Helper\OCISClient;
 use OCP\IConfig;
-use OCP\IGroupManager;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
-use OCP\Share\IManager;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Migrate extends Command {
-	use CommandTrait;
-
+class Migrate extends CommandBase {
 	private IUserManager $userManager;
-	private IManager $shareManager;
-	private IGroupManager $groupManager;
 	private ConflictLogFile $conflict_log_file;
 
 	public function __construct(
@@ -63,7 +56,9 @@ class Migrate extends Command {
 		}
 
 		# get user access
-		$this->ocis_admin = $input->getArgument('ocis-admin');
+		# ensure the ocis instance is reachable
+		$this->ocis_admin_user = $input->getArgument('ocis-admin');
+		$this->askAdminPassword($input, $output);
 		$this->getAdminAccessToken();
 
 		$now = \time();
@@ -132,15 +127,20 @@ class Migrate extends Command {
 		return $ok;
 	}
 
+	/**
+	 * @throws JsonException
+	 */
 	private function migrateUser(IUser $user): void {
 		$email = $user->getEMailAddress();
 		$token = $this->getAdminAccessToken();
 
 		$client = $this->initGraphApi();
-		$client->createUser($token, $email);
-		# TODO: user already exists - continue
-		# $this->writeln("$email - user already existing in ownCloud InfiniteScale.");
-		$this->writeln("$email - user created in ownCloud InfiniteScale.");
+		$created = $client->createUser($token, $user);
+		if ($created) {
+			$this->writeln("$email - user created in ownCloud InfiniteScale.");
+		} else {
+			$this->writeln("$email - user already existing in ownCloud InfiniteScale.");
+		}
 	}
 
 	private function migrateShares(): void {

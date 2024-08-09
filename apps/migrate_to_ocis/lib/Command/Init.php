@@ -22,7 +22,6 @@ class Init extends Command {
 			->setName('migrate:to-ocis:init')
 			->setDescription('Initialize the migration process. See also: https://doc.owncloud.com/server/latest/admin_manual/maintenance/migrating_to_ocis.html')
 			->addArgument('ocis_host', InputArgument::REQUIRED)
-			->addArgument('shared_migration_api_key', InputArgument::REQUIRED)
 			->addOption('force', 'f')
 		;
 	}
@@ -36,10 +35,6 @@ class Init extends Command {
 		# setup ocis_host
 		$new_ocis_host = $input->getArgument('ocis_host');
 		$this->saveSetting('ocis_host', $new_ocis_host);
-
-		# setup migration key
-		$rclone_client_id = $input->getArgument('shared_migration_api_key');
-		$this->saveSetting('shared_migration_api_key', $rclone_client_id);
 
 		$output->writeln("Migration initialized!");
 		$output->writeln('');
