@@ -43,7 +43,7 @@ style('drawio', 'editor');
 	window.addEventListener('DOMContentLoaded', function() {
 		OCA.Drawio.LoadEventHandler(
 			$('#drawioEditor')[0].contentWindow,
-			'<?php echo urldecode($_['path']); ?>',
+			'<?php p(base64_encode($_['path'])); ?>',
 			'https://embed.diagrams.net'
 		);
 	});

@@ -127,7 +127,9 @@
 			})
 	};
 
-	OCA.Drawio.LoadEventHandler = function (editWindow, path, origin) {
+	// path must be base64-encoded
+	OCA.Drawio.LoadEventHandler = function (editWindow, encodedPath, origin) {
+		path = atob(encodedPath);
 		var eventHandler = function (evt) {
 			if (evt.data.length > 0 && origin.includes(evt.origin)) {
 				var payload = JSON.parse(evt.data);
