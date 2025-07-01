@@ -3,9 +3,11 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
+## [1.0.1] - 2025-07-01
 
-## [Unreleased] - ....
+### Fixed
 
+- [#35](https://github.com/owncloud/drawio/pull/35) - fix: base64-encode path parameter in loadEventHandler
 
 
 ## [1.0.1] - 2023-08-21
@@ -19,7 +21,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 - [#21](https://github.com/owncloud/drawio/pull/21) - "Error: This is not a Drawio file!" when opening valid *.drawio-file
 - [#29](https://github.com/owncloud/drawio/pull/29) - [QA] drawio fails to register mime type for .drawio files
-
 
 
 ## [1.0.0] - 2023-05-05
