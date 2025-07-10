@@ -59,7 +59,11 @@ class Migrate extends CommandBase {
 		# ensure the ocis instance is reachable
 		$this->ocis_admin_user = $input->getArgument('ocis-admin');
 		$this->askAdminPassword($input, $output);
-		$this->getAdminAccessToken();
+		$token = $this->getAdminAccessToken();
+
+		$graph = $this->initGraphApi();
+		$apps = $graph->getApplications($token);
+		$chosenAppRole = $this->askForDefaultRole($input, $output, $apps);
 
 		$now = \time();
 		$this->conflict_log_file = new ConflictLogFile();
@@ -70,7 +74,7 @@ class Migrate extends CommandBase {
 
 		# first we create users in ocis
 		$this->writeln("Migrating users ...");
-		$this->migrateUsers();
+		$this->migrateUsers($chosenAppRole[1], $chosenAppRole[0]);
 
 		# copy files over to ocis
 		$this->writeln("Migrating files ...");
@@ -105,11 +109,11 @@ class Migrate extends CommandBase {
 		return true;
 	}
 
-	private function migrateUsers(): void {
-		$this->userManager->callForUsers(function (IUser $user) {
+	private function migrateUsers(string $roleId, string $appId): void {
+		$this->userManager->callForUsers(function (IUser $user) use ($roleId, $appId) {
 			if ($this->shallMigrate($user)) {
 				$this->writeln(" " . $user->getUserName() . "/" . $user->getEMailAddress());
-				$this->migrateUser($user);
+				$this->migrateUser($user, $roleId, $appId);
 			}
 		});
 	}
@@ -130,13 +134,14 @@ class Migrate extends CommandBase {
 	/**
 	 * @throws JsonException
 	 */
-	private function migrateUser(IUser $user): void {
+	private function migrateUser(IUser $user, string $roleId, string $appId): void {
 		$email = $user->getEMailAddress();
 		$token = $this->getAdminAccessToken();
 
 		$client = $this->initGraphApi();
-		$created = $client->createUser($token, $user);
-		if ($created) {
+		$userBody = $client->createUser($token, $user);
+		if ($userBody) {
+			$client->assignRole($token, $userBody['id'], $roleId, $appId);
 			$this->writeln("$email - user created in ownCloud InfiniteScale.");
 		} else {
 			$this->writeln("$email - user already existing in ownCloud InfiniteScale.");
