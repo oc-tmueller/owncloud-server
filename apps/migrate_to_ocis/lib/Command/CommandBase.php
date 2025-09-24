@@ -16,6 +16,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
+use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Process\Process;
 
 class CommandBase extends Command {
@@ -95,6 +96,47 @@ class CommandBase extends Command {
 		);
 		$question->setHidden(true);
 		$this->ocis_admin_password = $helper->ask($input, $output, $question);
+	}
+
+	protected function askForDefaultRole(InputInterface $input, OutputInterface $output, array $apps) {
+		/** @var \Symfony\Component\Console\Helper\QuestionHelper $helper */
+		$helper = $this->getHelper('question');
+
+		$appsDisplayName = \array_map(function ($app) {
+			return $app['displayName'];
+		}, $apps);
+
+		$appIndex = 0;
+		$chosenApp = $apps[$appIndex];  // it must be at least one app
+		if (\count($apps) > 1) {
+			$question = new ChoiceQuestion(
+				'Choose the app containing the default role',
+				// choices can also be PHP objects that implement __toString() method
+				$appsDisplayName,
+				0
+			);
+			$appVal = $helper->ask($input, $output, $question);
+			$appIndex = \array_search($appVal, $appsDisplayName, true);
+			$chosenApp = $apps[$appIndex];
+		}
+
+		$rolesDisplayName = \array_map(function ($role) {
+			return $role['displayName'];
+		}, $chosenApp['appRoles']);
+
+		$roleIndex = 0;
+		$chosenRole = $chosenApp['appRoles'][$roleIndex];
+		$question = new ChoiceQuestion(
+			'Choose the default role',
+			// choices can also be PHP objects that implement __toString() method
+			$rolesDisplayName,
+			0
+		);
+		$roleVal = $helper->ask($input, $output, $question);
+		$roleIndex = \array_search($roleVal, $rolesDisplayName, true);
+		$chosenRole = $chosenApp['appRoles'][$roleIndex];
+
+		return [$chosenApp['id'], $chosenRole['id']];
 	}
 
 	protected function cloneFilesForUser(IUser $user, ConflictLogFile $conflictLogFile): bool {
