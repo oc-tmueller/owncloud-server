@@ -9,24 +9,30 @@ use OCA\MigrateToInfiniteScale\Helper\OCISClient;
 use OCP\IConfig;
 use OCP\IURLGenerator;
 use OCP\IUser;
+use OCP\IGroup;
 use OCP\IUserManager;
+use OCP\IGroupManager;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Migrate extends CommandBase {
 	private IUserManager $userManager;
+	private IGroupManager $groupManager;
 	private ConflictLogFile $conflict_log_file;
+	private array $cachedOcisUserIds = [];
 
 	public function __construct(
 		IConfig $config,
 		IUserManager $userManager,
+		IGroupManager $groupManager,
 		IURLGenerator $generator,
 		DefaultTokenProvider $tokenProvider
 	) {
 		parent::__construct();
 		$this->config = $config;
 		$this->userManager = $userManager;
+		$this->groupManager = $groupManager;
 		$this->generator = $generator;
 		$this->tokenProvider = $tokenProvider;
 	}
@@ -76,6 +82,10 @@ class Migrate extends CommandBase {
 		$this->writeln("Migrating users ...");
 		$this->migrateUsers($chosenAppRole[1], $chosenAppRole[0]);
 
+		# migrate the groups
+		$this->writeln("Migrating groups ...");
+		$this->migrateGroups();
+
 		# copy files over to ocis
 		$this->writeln("Migrating files ...");
 		$ok = $this->cloneFiles();
@@ -118,6 +128,14 @@ class Migrate extends CommandBase {
 		});
 	}
 
+	private function migrateGroups() {
+		$groups = $this->groupManager->search("");
+		foreach ($groups as $group) {
+			$this->writeln(" {$group->getDisplayName()}");
+			$this->migrateGroup($group);
+		}
+	}
+
 	private function cloneFiles(): bool {
 		$ok = true;
 		$this->userManager->callForUsers(function (IUser $user) use (&$ok) {
@@ -135,16 +153,54 @@ class Migrate extends CommandBase {
 	 * @throws JsonException
 	 */
 	private function migrateUser(IUser $user, string $roleId, string $appId): void {
-		$email = $user->getEMailAddress();
+		$username = $user->getUserName();
 		$token = $this->getAdminAccessToken();
 
 		$client = $this->initGraphApi();
 		$userBody = $client->createUser($token, $user);
 		if ($userBody) {
 			$client->assignRole($token, $userBody['id'], $roleId, $appId);
-			$this->writeln("$email - user created in ownCloud InfiniteScale.");
+			$this->writeln("$username - user created in ownCloud InfiniteScale.");
+
+			// we might need the oCIS' user id later, so cache it now
+			$this->cachedOcisUserIds[$username] = $userBody['id'];
 		} else {
-			$this->writeln("$email - user already existing in ownCloud InfiniteScale.");
+			$this->writeln("$username - user already existing in ownCloud InfiniteScale.");
+		}
+	}
+
+	private function migrateGroup(IGroup $group) {
+		$token = $this->getAdminAccessToken();
+
+		$client = $this->initGraphApi();
+		$groupBody = $client->createGroup($token, $group);
+		if (!$groupBody) {
+			// if the group isn't created, try to find it
+			$groupBody = $client->checkGroup($token, $group);
+		}
+
+		if ($groupBody) {
+			foreach ($group->getUsers() as $user) {
+				$username = $user->getUserName();
+				if (!isset($this->cachedOcisUserIds[$username])) {
+					$userFound = $client->checkUser($token, $user);
+					if (!$userFound) {
+						$this->writeln("  skipped {$group->getDisplayName()} {$username}");
+						continue;
+					} else {
+						$this->cachedOcisUserIds[$username] = $userFound['id'];
+					}
+				}
+
+				$result = $client->addMemberToGroup($token, $groupBody['id'], $this->cachedOcisUserIds[$username]);
+				if ($result) {
+					$this->writeln("  added {$group->getDisplayName()} {$username}");
+				} else {
+					$this->writeln("  FAILED {$group->getDisplayName()} {$username}");
+				}
+			}
+		} else {
+			$this->writeln("failed to create group {$group->getDisplayName()}");
 		}
 	}
 
