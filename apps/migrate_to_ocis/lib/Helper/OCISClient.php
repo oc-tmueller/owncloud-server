@@ -4,16 +4,19 @@ namespace OCA\MigrateToInfiniteScale\Helper;
 use Exception;
 use JsonException;
 use OCP\Http\Client\IClient;
+use OCP\Http\Client\IWebDavClientService;
 use OCP\IUser;
 use OCP\IGroup;
 
 class OCISClient {
 	private IClient $client;
+	private IWebDavClientService $webdavCS;
 	private string $ocis_host;
 	private bool $insecure;
 
-	public function __construct(IClient $client, string $ocis_host, bool $insecure) {
+	public function __construct(IClient $client, IWebDavClientService $webdavCS, string $ocis_host, bool $insecure) {
 		$this->client = $client;
+		$this->webdavCS = $webdavCS;
 		$this->ocis_host = $ocis_host;
 		$this->insecure = $insecure;
 	}
@@ -49,6 +52,19 @@ class OCISClient {
 
 		return $token;
 	}
+
+	// TODO: need to remove used tokens
+	//public function tokenRemove(string $admin_user, string $admin_password, string $token) {
+	//	$resp = $this->client->delete("https://$this->ocis_host/auth-app/tokens", [
+	//		'http_errors' => false,
+	//		'auth' => [$admin_user, $admin_password],
+	//		'query' => [
+	//			'token' => $token,
+	//		],
+	//		'verify' => !$this->insecure,
+	//	]);
+	//	return $resp->getStatusCode();
+	//}
 
 	/**
 	 * @throws JsonException
@@ -224,6 +240,61 @@ class OCISClient {
 		throw new \RuntimeException("Failed to add member to group! Error: $errorCode");
 	}
 
+	public function shareInvite(string $token, string $userID, array $shareInviteData): array {
+		$driveId = $shareInviteData['driveId'];
+		$itemId = $shareInviteData['itemId'];
+		$recipientType = $shareInviteData['recipientType'];
+		$recipientId = $shareInviteData['recipientId'];
+		$roleId = $shareInviteData['roleId'];
+
+		$resp = $this->client->post("https://$this->ocis_host/graph/v1beta1/drives/$driveId/items/$itemId/invite", [
+			'http_errors' => false,
+			'auth' => [
+				$userID,
+				$token
+			],
+			'json' => [
+				'recipients' => [
+					[
+						'@libre.graph.recipient.type' =>  $recipientType,
+						'objectId' => $recipientId,
+					],
+				],
+				'roles' => [$roleId],
+			],
+			'verify' => !$this->insecure,
+		]);
+
+		$body = $resp->getBody();
+		$body = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+		if ($resp->getStatusCode() === 200) {
+			return $body;
+		}
+		$errorCode = $body['error']['code'] ?? '';
+
+		throw new \RuntimeException("Failed to share invite! Error: $errorCode");
+	}
+
+	/**
+	 * Get a list containing the share roles defined in oCIS
+	 */
+	public function getShareRoles(string $token): array {
+		$resp = $this->client->get("https://$this->ocis_host/graph/v1beta1/roleManagement/permissions/roleDefinitions", [
+			'http_errors' => false,
+			'auth' => [
+				'admin',
+				$token
+			],
+			'verify' => !$this->insecure,
+		]);
+		$body = $resp->getBody();
+		if ($resp->getStatusCode() !== 200) {
+			throw new \RuntimeException("Failed to fetch share roles! Status: {$resp->getStatusCode()}");
+		}
+		$decodedBody = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+		return $decodedBody;
+	}
+
 	public function getApplications(string $token): array {
 		$resp = $this->client->get("https://$this->ocis_host/graph/v1.0/applications", [
 			'http_errors' => false,
@@ -266,5 +337,80 @@ class OCISClient {
 		$decodedBody = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
 
 		return $decodedBody;
+	}
+
+	/**
+	 * Get a list with the information of all personal drives for the user.
+	 * The list is expected to have only one item (only one personal drive).
+	 *
+	 * The $userID and $token will be used for authentication
+	 */
+	public function getPersonalDrives(string $token, string $userID): array {
+		$resp = $this->client->get("https://$this->ocis_host/graph/v1.0/me/drives", [
+			'http_errors' => false,
+			'auth' => [
+				$userID,
+				$token
+			],
+			'verify' => !$this->insecure,
+		]);
+		$body = $resp->getBody();
+		if ($resp->getStatusCode() !== 200) {
+			throw new \RuntimeException("Failed to get personal drives! Status: {$resp->getStatusCode()}");
+		}
+		$decodedBody = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+
+		if (!isset($decodedBody['value']) || !\is_array($decodedBody['value'])) {
+			return [];
+		}
+		// return only personal drives
+		$drives = [];
+		foreach ($decodedBody['value'] as $driveInfo) {
+			if (isset($driveInfo['driveType']) && $driveInfo['driveType'] === 'personal') {
+				$drives[] = $driveInfo;
+			}
+		}
+		return $drives;
+	}
+
+	/**
+	 * Get a webdav client to access to the provided drive.
+	 * The $userID and $token will be used to authenticate against
+	 * the drive.
+	 * Note that SSL certificates might need to be installed to access
+	 * the drive unless the "insecure" flag is on (disabling certificate
+	 * verification)
+	 * @return \Sabre\DAV\Client
+	 */
+	public function getWebdavClientForDrive(string $token, string $userID, array $driveInfo): \Sabre\DAV\Client {
+		$webdavClient = $this->webdavCS->newClient([
+			'baseUri' => $driveInfo['root']['webDavUrl'] . '/',
+			'userName' => $userID,
+			'password' => $token,
+			'authType' => \Sabre\DAV\Client::AUTH_BASIC,
+		]);
+
+		if ($this->insecure) {
+			$webdavClient->addCurlSetting(CURLOPT_SSL_VERIFYPEER, false);
+			$webdavClient->addCurlSetting(CURLOPT_SSL_VERIFYHOST, false);
+		}
+
+		// newClient returns a \Sabre\DAV\Client although it's
+		// documented to return a \Sabre\HTTP\Client. We need the
+		// dav client though.
+		//
+		// @phpstan-ignore-next-line
+		return $webdavClient;
+	}
+
+	/**
+	 * Get the oCIS file info for the target path.
+	 * The path refers to a OC10 path that must have been migrated
+	 */
+	public function getOcisFileInfo(string $token, \Sabre\DAV\Client $davClient, string $path): array {
+		$targetPath = "ownCloud/{$path}";
+		$data = $davClient->propFind($targetPath, ['{http://owncloud.org/ns}fileid']);
+
+		return $data;
 	}
 }

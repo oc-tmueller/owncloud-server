@@ -6,12 +6,16 @@ use JsonException;
 use OC\Authentication\Token\DefaultTokenProvider;
 use OCA\MigrateToInfiniteScale\Helper\ConflictLogFile;
 use OCA\MigrateToInfiniteScale\Helper\OCISClient;
+use OCA\MigrateToInfiniteScale\Helper\SharePermissionMapper;
+use OCA\MigrateToInfiniteScale\Helper\UserGroupFinder;
 use OCP\IConfig;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IGroup;
 use OCP\IUserManager;
 use OCP\IGroupManager;
+use OCP\Share\IManager;
+use OCP\Share\IShare;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -19,13 +23,15 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Migrate extends CommandBase {
 	private IUserManager $userManager;
 	private IGroupManager $groupManager;
+	private IManager $shareManager;
 	private ConflictLogFile $conflict_log_file;
-	private array $cachedOcisUserIds = [];
+	private UserGroupFinder $userGroupFinder;
 
 	public function __construct(
 		IConfig $config,
 		IUserManager $userManager,
 		IGroupManager $groupManager,
+		IManager $shareManager,
 		IURLGenerator $generator,
 		DefaultTokenProvider $tokenProvider
 	) {
@@ -33,6 +39,7 @@ class Migrate extends CommandBase {
 		$this->config = $config;
 		$this->userManager = $userManager;
 		$this->groupManager = $groupManager;
+		$this->shareManager = $shareManager;
 		$this->generator = $generator;
 		$this->tokenProvider = $tokenProvider;
 	}
@@ -67,8 +74,8 @@ class Migrate extends CommandBase {
 		$this->askAdminPassword($input, $output);
 		$token = $this->getAdminAccessToken();
 
-		$graph = $this->initGraphApi();
-		$apps = $graph->getApplications($token);
+		$client = $this->initGraphApi();
+		$apps = $client->getApplications($token);
 		$chosenAppRole = $this->askForDefaultRole($input, $output, $apps);
 
 		$now = \time();
@@ -77,6 +84,9 @@ class Migrate extends CommandBase {
 			$this->writeln("Failed to create conflict file: migrate-ocis-$now.csv");
 			return 1;
 		}
+
+		// prepare cache
+		$this->userGroupFinder = new UserGroupFinder($client, $this->userManager, $this->groupManager);
 
 		# first we create users in ocis
 		$this->writeln("Migrating users ...");
@@ -163,7 +173,7 @@ class Migrate extends CommandBase {
 			$this->writeln("$username - user created in ownCloud InfiniteScale.");
 
 			// we might need the oCIS' user id later, so cache it now
-			$this->cachedOcisUserIds[$username] = $userBody['id'];
+			$this->userGroupFinder->addUserToCache($user, $userBody['id']);
 		} else {
 			$this->writeln("$username - user already existing in ownCloud InfiniteScale.");
 		}
@@ -182,39 +192,79 @@ class Migrate extends CommandBase {
 		if ($groupBody) {
 			foreach ($group->getUsers() as $user) {
 				$username = $user->getUserName();
-				if (!isset($this->cachedOcisUserIds[$username])) {
-					$userFound = $client->checkUser($token, $user);
-					if (!$userFound) {
-						$this->writeln("  skipped {$group->getDisplayName()} {$username}");
-						continue;
-					} else {
-						$this->cachedOcisUserIds[$username] = $userFound['id'];
-					}
+				$ocisUserId = $this->userGroupFinder->getUser($token, $user);
+				if ($ocisUserId === null) {
+					$this->writeln("  skipped {$group->getDisplayName()} {$username}");
+					continue;
 				}
 
-				$result = $client->addMemberToGroup($token, $groupBody['id'], $this->cachedOcisUserIds[$username]);
+				$result = $client->addMemberToGroup($token, $groupBody['id'], $ocisUserId);
 				if ($result) {
 					$this->writeln("  added {$group->getDisplayName()} {$username}");
 				} else {
 					$this->writeln("  FAILED {$group->getDisplayName()} {$username}");
 				}
 			}
+			// add the group to the cache
+			$this->userGroupFinder->addGroupToCache($group, $groupBody['id']);
 		} else {
 			$this->writeln("failed to create group {$group->getDisplayName()}");
 		}
 	}
 
 	private function migrateShares(): void {
-		$this->userManager->callForUsers(function (IUser $user) {
+		$token = $this->getAdminAccessToken();
+
+		$client = $this->initGraphApi();
+		$roles = $client->getShareRoles($token);
+		$permMapper = new SharePermissionMapper($roles);
+		$permissionMap = $permMapper->getPermissionMap();
+
+		$this->userManager->callForUsers(function (IUser $user) use ($client, $permMapper, $permissionMap) {
 			if ($this->shallMigrate($user)) {
 				$this->writeln(" " . $user->getUserName() . "/" . $user->getEMailAddress());
-				$this->writeln("Shares are not yet being migrated!");
+				$this->createSharesForUser($this->shareManager, $user, $this->userGroupFinder, $permissionMap, $client, function (IShare $share, array $response) use ($permMapper) {
+					$sharePath = $share->getNode()->getPath();
+					$sharedWith = $share->getSharedWith();
+
+					$processedData = [];
+					foreach ($response['value'] as $item) {
+						// expect only one item, but multiple items might be returned
+						$rolesDisplayNames = [];
+						foreach ($item['roles'] as $roleId) {
+							$role = $permMapper->getRoleById($roleId);
+							if ($role) {
+								$rolesDisplayNames[] = "'{$role['displayName']}'";  // include quotes for better message
+							} else {
+								$rolesDisplayNames[] = "'{$roleId}'";
+							}
+						}
+
+						$grantedDisplayName = '';
+						if (isset($item['grantedToV2']['user'])) {
+							$grantedDisplayName = $item['grantedToV2']['user']['displayName'];
+						} elseif (isset($item['grantedToV2']['group'])) {
+							$grantedDisplayName = $item['grantedToV2']['group']['displayName'];
+						}
+
+						$processedData[] = "created with roles " . \implode(',', $rolesDisplayNames) . " to '$grantedDisplayName'";
+					}
+
+					$sharedWithStr = $sharedWith;
+					if ($share->getShareType() === \OCP\Share::SHARE_TYPE_USER) {
+						$sharedWithStr = "user '$sharedWith'";
+					} elseif ($share->getShareType() === \OCP\Share::SHARE_TYPE_GROUP) {
+						$sharedWithStr = "group '$sharedWith'";
+					}
+					$this->writeln("  $sharePath (shared with $sharedWithStr) => " . \implode(';', $processedData));
+				});
 			}
 		});
 	}
 
 	private function initGraphApi(): OCISClient {
 		$client = \OC::$server->getHTTPClientService()->newClient();
-		return new OCISClient($client, $this->ocis_host, $this->insecure);
+		$webdavCS = \OC::$server->getWebDavClientService();
+		return new OCISClient($client, $webdavCS, $this->ocis_host, $this->insecure);
 	}
 }
