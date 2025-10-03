@@ -246,6 +246,20 @@ class OCISClient {
 		$recipientType = $shareInviteData['recipientType'];
 		$recipientId = $shareInviteData['recipientId'];
 		$roleId = $shareInviteData['roleId'];
+		$expiration = $shareInviteData['expiration'];
+
+		$jsonData = [
+			'recipients' => [
+				[
+					'@libre.graph.recipient.type' =>  $recipientType,
+					'objectId' => $recipientId,
+				],
+			],
+			'roles' => [$roleId],
+		];
+		if ($expiration) {
+			$jsonData['expirationDateTime'] = $expiration;
+		}
 
 		$resp = $this->client->post("https://$this->ocis_host/graph/v1beta1/drives/$driveId/items/$itemId/invite", [
 			'http_errors' => false,
@@ -253,15 +267,7 @@ class OCISClient {
 				$userID,
 				$token
 			],
-			'json' => [
-				'recipients' => [
-					[
-						'@libre.graph.recipient.type' =>  $recipientType,
-						'objectId' => $recipientId,
-					],
-				],
-				'roles' => [$roleId],
-			],
+			'json' => $jsonData,
 			'verify' => !$this->insecure,
 		]);
 

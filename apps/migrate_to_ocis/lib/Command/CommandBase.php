@@ -177,6 +177,11 @@ class CommandBase extends Command {
 				$nodePath = \substr($nodePath, \strlen("/{$user->getUID()}/files/"));
 			}
 
+			$shareExpiration = $share->getExpirationDate();
+			if ($shareExpiration) {
+				$shareExpiration = $shareExpiration->format(\DateTime::RFC3339);
+			}
+
 			$recipientType = '';
 			$recipientId = '';
 			if ($share->getShareType() === \OCP\Share::SHARE_TYPE_USER) {
@@ -205,7 +210,9 @@ class CommandBase extends Command {
 				'recipientType' => $recipientType,
 				'recipientId' => $recipientId,
 				'roleId' => $chosenRole['id'],
+				'expiration' => $shareExpiration,
 			];
+
 			$jsonResp = $ocisClient->shareInvite($user_token, $user->getUID(), $inviteData);
 
 			// run callback if successful
