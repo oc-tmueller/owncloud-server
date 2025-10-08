@@ -220,6 +220,61 @@ class CommandBase extends Command {
 		}
 	}
 
+	protected function createLinkSharesForUser(IManager $shareManager, IUser $user, OCISClient $ocisClient, callable $callback) {
+		$user_token = $this->ocis_admin_password;
+		if ($user->getUID() !== $this->ocis_admin_user) {
+			$user_token = $this->actAsUser($user->getUID());
+		}
+
+		$personalDrives = $ocisClient->getPersonalDrives($user_token, $user->getUID());
+		if (\count($personalDrives) !== 1) {
+			// only 1 personal drive is expected, abort otherwise
+			return false;
+		}
+
+		$shares = $shareManager->getSharesBy($user->getUID(), \OCP\Share::SHARE_TYPE_LINK, null, true, -1);
+		$webdavClient = $ocisClient->getWebdavClientForDrive($user_token, $user->getUID(), $personalDrives[0]);
+
+		foreach ($shares as $share) {
+			$nodePath = $share->getNode()->getPath();
+			if (\strpos($nodePath, "/{$user->getUID()}/files/") === 0) {
+				$nodePath = \substr($nodePath, \strlen("/{$user->getUID()}/files/"));
+			}
+
+			$shareExpiration = $share->getExpirationDate();
+			if ($shareExpiration) {
+				$shareExpiration = $shareExpiration->format(\DateTime::RFC3339);
+			}
+
+			$permissions = $share->getPermissions();
+			if (($permissions & \OCP\Constants::PERMISSION_READ) === \OCP\Constants::PERMISSION_READ) {
+				$ocisLinkType = 'view';
+				if (
+					($permissions & \OCP\Constants::PERMISSION_UPDATE) === \OCP\Constants::PERMISSION_UPDATE ||
+					($permissions & \OCP\Constants::PERMISSION_CREATE) === \OCP\Constants::PERMISSION_CREATE
+				) {
+					$ocisLinkType = 'edit';
+				}
+			} else {
+				$ocisLinkType = 'createOnly';
+			}
+
+			$ocisFileInfo = $ocisClient->getOcisFileInfo($user_token, $webdavClient, $nodePath);
+			$linkData = [
+				'driveId' => $personalDrives[0]['id'],
+				'itemId' => $ocisFileInfo['{http://owncloud.org/ns}fileid'],
+				'type' => $ocisLinkType,
+				'expiration' => $shareExpiration,
+				'password' => $share->getPassword(),
+			];
+
+			$jsonResp = $ocisClient->shareLink($user_token, $user->getUID(), $linkData);
+
+			// run callback if successful
+			$callback($share, $jsonResp);
+		}
+	}
+
 	protected function cloneFilesForUser(IUser $user, ConflictLogFile $conflictLogFile): bool {
 		$email = $user->getEMailAddress();
 		if ($email === null) {

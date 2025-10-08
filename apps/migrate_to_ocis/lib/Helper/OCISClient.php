@@ -273,12 +273,39 @@ class OCISClient {
 
 		$body = $resp->getBody();
 		$body = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
-		if ($resp->getStatusCode() === 200) {
-			return $body;
-		}
-		$errorCode = $body['error']['code'] ?? '';
 
-		throw new \RuntimeException("Failed to share invite! Error: $errorCode");
+		return $body;
+	}
+
+	public function shareLink(string $token, string $userID, array $shareLinkData): array {
+		$driveId = $shareLinkData['driveId'];
+		$itemId = $shareLinkData['itemId'];
+		$type = $shareLinkData['type'];
+		$expiration = $shareLinkData['expiration'];
+		$password = $shareLinkData['password'];
+
+		$jsonData = ['type' => $type];
+		if ($expiration) {
+			$jsonData['expirationDateTime'] = $expiration;
+		}
+		if ($password) {
+			$jsonData['password'] = $password;
+		}
+
+		$resp = $this->client->post("https://$this->ocis_host/graph/v1beta1/drives/$driveId/items/$itemId/createLink", [
+			'http_errors' => false,
+			'auth' => [
+				$userID,
+				$token
+			],
+			'json' => $jsonData,
+			'verify' => !$this->insecure,
+		]);
+
+		$body = $resp->getBody();
+		$body = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+
+		return $body;
 	}
 
 	/**
