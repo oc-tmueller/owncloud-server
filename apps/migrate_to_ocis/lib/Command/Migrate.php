@@ -227,6 +227,19 @@ class Migrate extends CommandBase {
 					$sharePath = $share->getNode()->getPath();
 					$sharedWith = $share->getSharedWith();
 
+					$sharedWithStr = $sharedWith;
+					if ($share->getShareType() === \OCP\Share::SHARE_TYPE_USER) {
+						$sharedWithStr = "user '$sharedWith'";
+					} elseif ($share->getShareType() === \OCP\Share::SHARE_TYPE_GROUP) {
+						$sharedWithStr = "group '$sharedWith'";
+					}
+
+					if (isset($response['error'])) {
+						// if there is an error with the response, show the error and finish the callback
+						$this->writeln("  <error>$sharePath (shared with $sharedWithStr) => failed with error: {$response['error']['message']}</error>");
+						return;
+					}
+
 					$processedData = [];
 					foreach ($response['value'] as $item) {
 						// expect only one item, but multiple items might be returned
@@ -250,13 +263,19 @@ class Migrate extends CommandBase {
 						$processedData[] = "created with roles " . \implode(',', $rolesDisplayNames) . " to '$grantedDisplayName'";
 					}
 
-					$sharedWithStr = $sharedWith;
-					if ($share->getShareType() === \OCP\Share::SHARE_TYPE_USER) {
-						$sharedWithStr = "user '$sharedWith'";
-					} elseif ($share->getShareType() === \OCP\Share::SHARE_TYPE_GROUP) {
-						$sharedWithStr = "group '$sharedWith'";
-					}
 					$this->writeln("  $sharePath (shared with $sharedWithStr) => " . \implode(';', $processedData));
+				});
+
+				$this->createLinkSharesForUser($this->shareManager, $user, $client, function (IShare $share, array $response) {
+					$sharePath = $share->getNode()->getPath();
+
+					if (isset($response['error'])) {
+						// if there is an error with the response, show the error and finish the callback
+						$this->writeln("  <error>$sharePath (shared via link) => failed with error: {$response['error']['message']}</error>");
+						return;
+					}
+
+					$this->writeln("  $sharePath (shared via link) => created with type '{$response['link']['type']}' on url '{$response['link']['webUrl']}'");
 				});
 			}
 		});
