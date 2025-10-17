@@ -3,11 +3,12 @@
 namespace OCA\MigrateToInfiniteScale\Command;
 
 use JsonException;
-use OC\Authentication\Token\DefaultTokenProvider;
 use OCA\MigrateToInfiniteScale\Helper\EMailAddress;
 use OCA\MigrateToInfiniteScale\Helper\Storage;
-use OCP\IConfig;
-use OCP\IURLGenerator;
+use OCA\MigrateToInfiniteScale\MigrationState\Migration;
+use OCA\MigrateToInfiniteScale\MigrationState\StateVerify;
+use OCA\MigrateToInfiniteScale\MigrationState\State;
+use OCA\MigrateToInfiniteScale\MigrationState\VerifyStateException;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Util;
@@ -15,20 +16,13 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Verify extends CommandBase {
-	private IUserManager $userManager;
+class Verify extends CommandMigration {
+	/** @var Migration */
+	//private Migration $migration;
 
-	public function __construct(
-		IConfig $config,
-		IUserManager $userManager,
-		IURLGenerator $generator,
-		DefaultTokenProvider $tokenProvider
-	) {
-		parent::__construct();
-		$this->config = $config;
-		$this->userManager = $userManager;
-		$this->generator = $generator;
-		$this->tokenProvider = $tokenProvider;
+	public function __construct(Migration $migration) {
+		parent::__construct($migration);
+		//$this->migration = $migration;
 	}
 
 	protected function configure() {
@@ -36,101 +30,77 @@ class Verify extends CommandBase {
 		$this
 			->setName('migrate:to-ocis:verify')
 			->setDescription('Verifies the ownCloud instance to be ready for migration. See also: https://doc.owncloud.com/server/latest/admin_manual/maintenance/migrating_to_ocis.html')
-			->addArgument('ocis-admin', InputArgument::REQUIRED)
-			->addOption('insecure', 'k');
+			->addArgument('ocis-admin', InputArgument::REQUIRED);
+	}
+
+	protected function prepareParams(InputInterface $input, OutputInterface $output): array {
+		// it just needs the output for the migration
+		return [
+			'output' => $output,
+		];
+	}
+
+	protected function verifyState(State $state, array &$params): ?string {
+		if (\get_class($state) !== StateVerify::class) {
+			throw new VerifyStateException('Wrong migration state to run the verification.');
+		}
+		return null;
+	}
+
+	protected function preMigrateActions(InputInterface $input, OutputInterface $output, array &$params) {
+		$output->writeln("Verifying local users ...");
+	}
+
+	protected function postSavedActions(InputInterface $input, OutputInterface $output) {
+		# display total storage
+		$storage = new Storage(\OC::$server->getDatabaseConnection());
+		$usedStorage = $storage->getUsedTotalSpace();
+		$output->writeln('');
+		$output->writeln("Total disk storage: " . Util::humanFileSize($usedStorage));
+		$output->writeln('');
+		$output->writeln("Congratulations - this instance is ready to be migrated to ownCloud InfiniteScale!");
 	}
 
 	/**
 	 * @throws JsonException
 	 */
+	/*
 	protected function execute(InputInterface $input, OutputInterface $output): int {
-		$this->config->setAppValue('migrate_to_ocis', 'instance_verified', 'no');
-
-		$this->output = $output;
-		$code = $this->preExecute($input);
-		if ($code !== 0) {
-			return $code;
-		}
-
-		# ensure the ocis instance is reachable
-		$this->ocis_admin_user = $input->getArgument('ocis-admin');
-		$this->askAdminPassword($input, $output);
-		$this->getAdminAccessToken();
-
-		# first we verify users
-		$this->writeln("Verifying users ...");
-		$ok = $this->verifyUsers();
-		if (!$ok) {
-			$this->writeln("<error>Please make sure all users meet the requirements.</error>");
-			$this->writeln("<error>This instance is NOT ready to be migrated to OCIS!</error>");
+		$this->migration->loadState();
+		$currentState = $this->migration->getState();
+		if (\get_class($currentState) !== StateVerify::class) {
+			$output->writeln('Wrong migration state to run the verification.');
+			$output->writeln('Please run "' . $currentState->associatedCommand() . '" to keep going with the migration');
 			return 1;
 		}
+
+		$params = [
+			'output' => $output,
+		];
+
+		try {
+			$output->writeln("Verifying local users ...");
+			$this->migration->runMigration($params);
+		} catch (MigrateException $e) {
+			$output->writeln("Something went wrong: {$e->getMessage()}");
+			$output->writeln("<error>Please make sure all users meet the requirements.</error>");
+			$output->writeln("<error>This instance is NOT ready to be migrated to OCIS!</error>");
+			return 1;
+		}
+
+		$this->migration->saveState();
+		$currentState = $this->migration->getState();
 
 		# display total storage
 		$storage = new Storage(\OC::$server->getDatabaseConnection());
 		$usedStorage = $storage->getUsedTotalSpace();
-		$this->writeln();
-		$this->writeln("Total disk storage: " . Util::humanFileSize($usedStorage));
-		$this->writeln();
+		$output->writeln('');
+		$output->writeln("Total disk storage: " . Util::humanFileSize($usedStorage));
+		$output->writeln('');
 
-		$this->writeln("Congratulations - this instance is ready to be migrated to ownCloud InfiniteScale!");
-		$this->config->setAppValue('migrate_to_ocis', 'instance_verified', 'yes');
+		$output->writeln("Congratulations - this instance is ready to be migrated to ownCloud InfiniteScale!");
+		$output->writeln('Continue the migration with ' . $currentState->associatedCommand());
 		return 0;
 	}
-
-	private function hasValidEMail(IUser $user): bool {
-		$email = $user->getEMailAddress();
-		if ($email === null) {
-			$this->writeln("<error>No Email for user {$user->getUID()} - it cannot be migrated to ownCloud InfiniteScale!</error>");
-			return false;
-		}
-		$validMailAddress = EMailAddress::validateMailAddress($email);
-		if (!$validMailAddress) {
-			$this->writeln("<error>No valid Email for user {$user->getUID()}: $email - it cannot be migrated to ownCloud InfiniteScale!</error>");
-			return false;
-		}
-		return true;
-	}
-
-	private function verifyUsers(): bool {
-		$verified = true;
-		$email_addresses = [];
-		# ensure all users have an email address ...
-		$this->userManager->callForUsers(function (IUser $user) use (&$verified, &$email_addresses) {
-			if (!$user->isEnabled()) {
-				$this->writeln("<warn>Disabled user {$user->getUID()} - it cannot be migrated to ownCloud InfiniteScale!</warn>");
-				return;
-			}
-			if (!$this->hasValidEMail($user)) {
-				$verified = false;
-			} else {
-				# save users by their email addresses ...
-				$email_address = strtolower($user->getEMailAddress());
-				$a = $email_addresses[$email_address] ?? [];
-				$a[]= $user;
-				$email_addresses[$email_address] = $a;
-			}
-		});
-
-		# detect duplicate email addresses
-		$sup_email_addresses = array_filter($email_addresses, static function (array $a) {
-			return \count($a) > 1;
-		});
-		if (\count($sup_email_addresses) > 0) {
-			$this->writeln('<error>Some users are sharing the same email address.</error>');
-			$this->writeln('<error>This can lead to unexpected behavior.</error>');
-			$this->writeln('');
-			$this->writeln('<error>Please assign unique email addresses to all users.</error>');
-			$this->writeln('');
-			foreach ($sup_email_addresses as $users) {
-				/** @var IUser[] $users */
-				foreach ($users as $u) {
-					$this->writeln(" - {$u->getEMailAddress()}: {$u->getUID()}");
-				}
-			}
-			return false;
-		}
-
-		return $verified;
-	}
+	 */
 }

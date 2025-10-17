@@ -1,5 +1,5 @@
 <?php
-namespace OCA\MigrateToInfiniteScale\Helper;
+namespace OCA\MigrateToInfiniteScale\OCIS;
 
 use Exception;
 use JsonException;
@@ -8,14 +8,11 @@ use OCP\Http\Client\IWebDavClientService;
 use OCP\IUser;
 use OCP\IGroup;
 
-/**
- * @deprecated use OCA\MigrateToInfiniteScale\OCIS\Client;
- */
-class OCISClient {
+class Client {
 	private IClient $client;
 	private IWebDavClientService $webdavCS;
 	private string $ocis_host;
-	private bool $insecure;
+	private bool $insecure = false;
 
 	public function __construct(IClient $client, IWebDavClientService $webdavCS, string $ocis_host, bool $insecure) {
 		$this->client = $client;
