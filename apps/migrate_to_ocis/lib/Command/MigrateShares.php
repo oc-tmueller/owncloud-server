@@ -2,7 +2,6 @@
 
 namespace OCA\MigrateToInfiniteScale\Command;
 
-use OCA\MigrateToInfiniteScale\OCIS\ClientService;
 use OCA\MigrateToInfiniteScale\MigrationState\Migration;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateShares;
 use OCA\MigrateToInfiniteScale\MigrationState\State;
@@ -37,12 +36,12 @@ class MigrateShares extends CommandMigration {
 	}
 
 	protected function preMigrateActions(InputInterface $input, OutputInterface $output, array &$params) {
-		$this->ocis_admin_user = $input->getArgument('ocis-admin');
-		$this->askAdminPassword($input, $output);
+		$user = $input->getArgument('ocis-admin');
+		$password = $this->askAdminPassword($input, $output, $user);
 
 		$params = [
-			'adminUser' => $this->ocis_admin_user,
-			'adminPassword' => $this->ocis_admin_password,
+			'adminUser' => $user,
+			'adminPassword' => $password,
 			'output' => $output,
 		];
 
