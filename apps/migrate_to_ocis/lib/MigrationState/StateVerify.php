@@ -17,6 +17,17 @@ class StateVerify implements State {
 		$this->userManager = $userManager;
 	}
 
+	/**
+	 * Verify the OC10 is ready to be migrated. The main requisite is that
+	 * all user must have an unique email
+	 *
+	 * Required params:
+	 * - 'output' -> a Symfony's OutputInterface to write messages
+	 *
+	 * Move to StateMigrateUsers on success.
+	 *
+	 * @throws MigrateException
+	 */
 	public function migrate(array $params, Migration $migration) {
 		$output = $params['output'];
 

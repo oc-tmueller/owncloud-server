@@ -24,12 +24,18 @@ class StateMigrateUsers implements State {
 	}
 
 	/**
+	 * Migrate users from OC10 to oCIS. All the migrated users will have
+	 * the same predefined role (previously chosen from what's available
+	 * in oCIS)
+	 *
 	 * Required params:
 	 * - 'roleId' -> the oCIS' role id that we'll be assigned to each user
 	 * - 'appId' -> the oCIS' app id for the role
 	 * - 'adminUser' -> the oCIS' admin username
 	 * - 'adminPassword' -> the oCIS' admin password (an app token will be generated from it)
 	 * - 'output' -> a Symfony's OutputInterface to write messages
+	 *
+	 * Move to StateMigrateGroups on success.
 	 */
 	public function migrate(array $params, Migration $migration) {
 		$client = $this->ocisClientService->newOCISClient();

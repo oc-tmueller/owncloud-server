@@ -2,6 +2,9 @@
 
 namespace OCA\MigrateToInfiniteScale\MigrationState;
 
+/**
+ * Represents a particular state of the migration.
+ */
 interface State {
 	/**
 	 * Run whatever migration actions are needed for this state and move
@@ -20,6 +23,10 @@ interface State {
 	/**
 	 * Return the occ command associated to this state. Running that command
 	 * should push the migration forward from this state to the next one.
+	 * Note that the association with the command is just for information
+	 * and it isn't enforced in any way.
+	 *
+	 * @return string
 	 */
 	public function associatedCommand(): string;
 }

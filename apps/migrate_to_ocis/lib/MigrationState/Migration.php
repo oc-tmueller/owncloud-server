@@ -7,6 +7,13 @@ use OCP\IConfig;
 use OCA\MigrateToInfiniteScale\MigrationState\Factory;
 use OCA\MigrateToInfiniteScale\MigrationState\StateInit;
 
+/**
+ * Represent the migration process.
+ * The migration has a State associated, which represents the current
+ * state or checkpoint of the migration.
+ * The migration can save and load the current state, but each state chooses
+ * when the migration needs to move to the next state.
+ */
 class Migration {
 	/** @var State */
 	private State $state;
@@ -67,7 +74,11 @@ class Migration {
 	}
 
 	/**
-	 * Switch the state of this migration instance
+	 * Switch the state of this migration instance.
+	 * Note that this function should only be used by the State subclasses,
+	 * unless we need to force a different State (only exception so far is the
+	 * Command\Init, which use this method to force a re-initialization of the
+	 * whole migration)
 	 * @params class-string $fullClassName the full class name of the state
 	 * we want to switch to.
 	 * @return bool true if switched, false otherwise.
@@ -90,6 +101,10 @@ class Migration {
 		return $this->state;
 	}
 
+	/**
+	 * Run the "migrate" action of the currently loaded state. The action
+	 * will run with the provided parameters.
+	 */
 	public function runMigration(array $params) {
 		$this->state->migrate($params, $this);
 	}

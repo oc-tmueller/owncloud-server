@@ -7,6 +7,9 @@ use OCA\MigrateToInfiniteScale\MigrationState\MigrateException;
 use OCA\MigrateToInfiniteScale\MigrationState\StateVerify;
 use OCP\IConfig;
 
+/**
+ * This is the initial state. This state will save important data to use it later.
+ */
 class StateInit implements State {
 	/** @var IConfig */
 	private IConfig $config;
@@ -15,6 +18,19 @@ class StateInit implements State {
 		$this->config = $config;
 	}
 
+	/**
+	 * We need to save the oCIS' host and the insecure connection flag
+	 * in order to move to the next state.
+	 * The host won't be overwritten (and it will throw an exception)
+	 * unless it's forced
+	 *
+	 * Required params:
+	 * - 'value' -> the oCIS' host
+	 * - 'insecure' -> whether we should verify the oCIS' host certificates
+	 * - 'force' -> force the overwritting of the host value
+	 *
+	 * Move to StateVerify on success.
+	 */
 	public function migrate(array $params, Migration $migration) {
 		$force = $params['force'] ?? false;
 		$value = $params['value'];

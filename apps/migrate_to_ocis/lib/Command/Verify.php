@@ -12,6 +12,9 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * Check if the local OC10 installation can be migrated.
+ */
 class Verify extends CommandMigration {
 	public function __construct(Migration $migration) {
 		parent::__construct($migration);

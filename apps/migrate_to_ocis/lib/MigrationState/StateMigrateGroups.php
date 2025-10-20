@@ -24,10 +24,17 @@ class StateMigrateGroups implements State {
 	}
 
 	/**
+	 * Migrate the OC10 groups to oCIS. The groups will have the same members
+	 * assuming the users have been migrated correctly.
+	 * Note that the userGroupFinder cache will be saved with the group
+	 * information.
+	 *
 	 * Required params:
 	 * - 'adminUser' -> the oCIS' admin username
 	 * - 'adminPassword' -> the oCIS' admin password (an app token will be generated from it)
 	 * - 'output' -> a Symfony's OutputInterface to write messages
+	 *
+	 * Move to StateMigrateFiles on success.
 	 */
 	public function migrate(array $params, Migration $migration) {
 		$client = $this->ocisClientService->newOCISClient();

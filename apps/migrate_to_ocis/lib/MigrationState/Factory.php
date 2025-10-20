@@ -20,6 +20,15 @@ use OCP\IURLGenerator;
 use OCP\Share\IManager;
 use OCP\AppFramework\Utility\ITimeFactory;
 
+/**
+ * The purpose of this class is to create States so you don't need to deal
+ * with the construction internals.
+ * You can inject this class as dependency and use "getNewState" with the
+ * State's classname to get a preconfigured instance of the State ready to use.
+ *
+ * The "registerDefaults" method should register all the known State to make
+ * them available. Additional States can be registered if needed.
+ */
 class Factory {
 	/** @var IConfig */
 	private IConfig $config;
@@ -112,11 +121,15 @@ class Factory {
 	/**
 	 * Get the starting state. A state must be returned even if no state
 	 * has been registered.
+	 * @return State
 	 */
 	public function getInitialState(): State {
 		return new StateInit($this->config);
 	}
 
+	/**
+	 * Register the constructors for all the known States
+	 */
 	public function registerDefaults() {
 		$data = [
 			StateInit::class => function() {
@@ -125,7 +138,6 @@ class Factory {
 			StateVerify::class => function() {
 				return new StateVerify($this->userManager);
 			},
-			//StateMigrate::class => function() { return new StateMigrate(); },
 			StateMigrateUsers::class => function() {
 				return new StateMigrateUsers($this->ocisClientService, $this->userGroupFinder, $this->userManager);
 			},

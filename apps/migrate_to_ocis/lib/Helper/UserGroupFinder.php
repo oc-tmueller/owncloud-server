@@ -151,6 +151,9 @@ class UserGroupFinder {
 	}
 
 	/**
+	 * Save the cache in a temporary file for a later use.
+	 * The filename is fixed, and it will be saved in the temporary
+	 * directory.
 	 * @throws \UnexpectedValueException
 	 */
 	public function saveCache() {
@@ -178,6 +181,9 @@ class UserGroupFinder {
 	}
 
 	/**
+	 * Load the cache previously saved with "saveCache".
+	 * Note that this will overwrite any value that this instance had
+	 * before this call.
 	 * @throws \UnexpectedValueException
 	 */
 	public function loadCache() {

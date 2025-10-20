@@ -11,6 +11,13 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * Initialize the migration.
+ * Only one migration can be "in progress". You can force this command to
+ * reinitialize the migration, but you'll lose all the progress made before.
+ * It can also cause problems if the target oCIS server is the same because
+ * there could be data already migrated that might cause problems.
+ */
 class Init extends CommandMigration {
 	/**
 	 * @param Migration $migration

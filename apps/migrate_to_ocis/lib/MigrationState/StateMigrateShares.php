@@ -30,10 +30,16 @@ class StateMigrateShares implements State {
 	}
 
 	/**
+	 * Migrate the shares from OC10 to oCIS. The shares include user shares,
+	 * group shares and link shares, for all the users.
+	 * This is the last meaningful state of the migration.
+	 *
 	 * Required params:
 	 * - 'adminUser' -> the oCIS' admin username
 	 * - 'adminPassword' -> the oCIS' admin password
 	 * - 'output' -> a Symfony's OutputInterface to write messages
+	 *
+	 * Move to StateFinish on success.
 	 */
 	public function migrate(array $params, Migration $migration) {
 		$client = $this->ocisClientService->newOCISClient();

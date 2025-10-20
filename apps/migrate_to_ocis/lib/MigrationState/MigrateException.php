@@ -2,6 +2,9 @@
 
 namespace OCA\MigrateToInfiniteScale\MigrationState;
 
+/**
+ * Exception that happens during the State's "migrate" action
+ */
 class MigrateException extends \Exception {
 	private string $advice = '';
 

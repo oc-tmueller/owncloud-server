@@ -55,10 +55,16 @@ class StateMigrateFiles implements State {
 	}
 
 	/**
+	 * Migrate the files of all users from OC10 to oCIS using the rclone binary
+	 *
 	 * Required params:
 	 * - 'adminUser' -> the oCIS' admin username
 	 * - 'adminPassword' -> the oCIS' admin password
 	 * - 'output' -> a Symfony's OutputInterface to write messages
+	 *
+	 * Move to StateMigrateShares on success.
+	 *
+	 * @throws MigrateException
 	 */
 	public function migrate(array $params, Migration $migration) {
 		$now = $this->timeFactory->getTime();
