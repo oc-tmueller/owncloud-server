@@ -36,7 +36,7 @@ class ClientService {
 	 * oCIS client might not work properly.
 	 */
 	public function newOCISClient(): Client {
-		$ocis_host = $this->config->getAppValue('migrate_to_ocis', 'ocis_host', null);
+		$ocis_host = $this->config->getAppValue('migrate_to_ocis', 'ocis_host', '');
 		$ocis_host_insecure = $this->config->getAppValue('migrate_to_ocis', 'ocis_host_insecure', false);
 		return new Client($this->httpClientService->newClient(), $this->webdavClientService, $ocis_host, $ocis_host_insecure);
 	}

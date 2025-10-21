@@ -27,7 +27,7 @@ class UserGroupFinder {
 	private ITempManager $tempManager;
 
 	/**
-	 * @param OCISClient $ocisClient client to make requests if needed
+	 * @param Client $ocisClient client to make requests if needed
 	 * @param IUserManager $userManager get OC10 users by id if needed
 	 * @param IGroupManager $groupManager get OC10 groups by id if needed
 	 */

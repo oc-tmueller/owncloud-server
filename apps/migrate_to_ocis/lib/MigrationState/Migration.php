@@ -5,7 +5,6 @@ namespace OCA\MigrateToInfiniteScale\MigrationState;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IConfig;
 use OCA\MigrateToInfiniteScale\MigrationState\Factory;
-use OCA\MigrateToInfiniteScale\MigrationState\StateInit;
 
 /**
  * Represent the migration process.

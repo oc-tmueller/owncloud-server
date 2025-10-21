@@ -5,6 +5,7 @@ namespace OCA\MigrateToInfiniteScale\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use OCA\MigrateToInfiniteScale\MigrationState\Migration;
+use OCA\MigrateToInfiniteScale\MigrationState\MigrateException;
 use OCA\MigrateToInfiniteScale\MigrationState\State;
 use OCA\MigrateToInfiniteScale\MigrationState\StateFinish;
 use OCA\MigrateToInfiniteScale\MigrationState\VerifyStateException;
@@ -134,7 +135,7 @@ abstract class CommandMigration extends CommandBase {
 	 * @param OutputInterface $output
 	 * @return int
 	 */
-	protected final function execute(InputInterface $input, OutputInterface $output): int {
+	final protected function execute(InputInterface $input, OutputInterface $output): int {
 		// prepare the parameters
 		$params = $this->prepareParams($input, $output);
 

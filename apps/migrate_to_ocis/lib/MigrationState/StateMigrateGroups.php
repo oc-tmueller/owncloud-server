@@ -42,6 +42,7 @@ class StateMigrateGroups implements State {
 		$params['adminPassword'] = $token;  // replace the admin's password with the token
 		$params['client'] = $client;  // include the oCIS client so we don't need to create a new one each time
 		$output = $params['output'];
+		'@phan-var \Symfony\Component\Console\Output\OutputInterface $output'; // @phpstan-ignore-line
 
 		try {
 			$this->userGroupFinder->loadCache();

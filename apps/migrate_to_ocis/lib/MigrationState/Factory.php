@@ -132,19 +132,19 @@ class Factory {
 	 */
 	public function registerDefaults() {
 		$data = [
-			StateInit::class => function() {
+			StateInit::class => function () {
 				return new StateInit($this->config);
 			},
-			StateVerify::class => function() {
+			StateVerify::class => function () {
 				return new StateVerify($this->userManager);
 			},
-			StateMigrateUsers::class => function() {
+			StateMigrateUsers::class => function () {
 				return new StateMigrateUsers($this->ocisClientService, $this->userGroupFinder, $this->userManager);
 			},
-			StateMigrateGroups::class => function() {
+			StateMigrateGroups::class => function () {
 				return new StateMigrateGroups($this->ocisClientService, $this->userGroupFinder, $this->groupManager);
 			},
-			StateMigrateFiles::class => function() {
+			StateMigrateFiles::class => function () {
 				return new StateMigrateFiles(
 					$this->ocisClientService,
 					$this->userManager,
@@ -155,7 +155,7 @@ class Factory {
 					$this->timeFactory
 				);
 			},
-			StateMigrateShares::class => function() {
+			StateMigrateShares::class => function () {
 				return new StateMigrateShares(
 					$this->ocisClientService,
 					$this->userGroupFinder,
@@ -163,7 +163,7 @@ class Factory {
 					$this->shareManager,
 				);
 			},
-			StateFinish::class => function() {
+			StateFinish::class => function () {
 				return new StateFinish();
 			}
 		];

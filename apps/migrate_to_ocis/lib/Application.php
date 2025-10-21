@@ -7,11 +7,9 @@ use OCP\AppFramework\IAppContainer;
 use OCP\AppFramework\App;
 use OCP\Http\Client\IWebDavClientService;
 use OCA\MigrateToInfiniteScale\Helper\UserGroupFinder;
-use OCA\MigrateToInfiniteScale\MigrationState\Migration;
 use OCA\MigrateToInfiniteScale\MigrationState\Factory;
 use OCA\MigrateToInfiniteScale\OCIS\ClientService;
 use OCA\MigrateToInfiniteScale\ConflictLog\LogService;
-use OCA\MigrateToInfiniteScale\Command\Init;
 
 class Application extends App {
 	public function __construct($appName, array $urlParams = []) {
@@ -21,7 +19,9 @@ class Application extends App {
 
 	public function registerServices() {
 		$container = $this->getContainer();
+		/** @var \OC\Server $server */
 		$server = $container->getServer();
+		'@phan-var \OC\Server $server'; // @phpstan-ignore-line
 
 		// IWebDavClientService isn't registered as classname in the
 		// server, so we need to register it here

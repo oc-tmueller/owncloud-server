@@ -7,12 +7,14 @@ use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateUsers;
 use OCA\MigrateToInfiniteScale\Helper\EMailAddress;
 use OCP\IUserManager;
 use OCP\IUser;
-use Symfony\Component\Console\Output\OutputInterface;
 
 class StateVerify implements State {
 	/** @var IUserManager */
 	private IUserManager $userManager;
 
+	/**
+	 * @param IUserManager $userManager
+	 */
 	public function __construct(IUserManager $userManager) {
 		$this->userManager = $userManager;
 	}
@@ -29,16 +31,13 @@ class StateVerify implements State {
 	 * @throws MigrateException
 	 */
 	public function migrate(array $params, Migration $migration) {
+		/** @var \Symfony\Component\Console\Output\OutputInterface $output */
 		$output = $params['output'];
-
-		if (!($output instanceof OutputInterface)) {
-			throw new MigrateException('Required parameters are missing');
-		}
 
 		$verified = true;
 		$email_addresses = [];
 		# ensure all users have an email address ...
-		$this->userManager->callForUsers(function (IUser $user) use (&$verified, &$email_addresses) {
+		$this->userManager->callForUsers(function (IUser $user) use (&$verified, &$email_addresses, $output) {
 			if (!$user->isEnabled()) {
 				$output->writeln("<warn>Disabled user {$user->getUID()} - it cannot be migrated to ownCloud InfiniteScale!</warn>");
 				return;

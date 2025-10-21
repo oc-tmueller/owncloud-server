@@ -88,6 +88,7 @@ class StateMigrateFiles implements State {
 		$ok = true;
 		$this->userManager->callForUsers(function (IUser $user) use (&$ok, $logFile, $params) {
 			if ($user->getEMailAddress() !== null && $user->isEnabled()) {
+				'@phan-var array{output:OutputInterface} $params'; // @phpstan-ignore-line
 				$params['output']->writeln(" " . $user->getUserName() . "/" . $user->getEMailAddress());
 				if (!$this->cloneFilesForUser($user, $logFile, $params)) {
 					$ok = false;
@@ -96,7 +97,7 @@ class StateMigrateFiles implements State {
 		});
 
 		if (!$ok) {
-			throw new MigrateException("Issues did arise when migrating files and folders...Please review {$this->conflict_log_file->getName()} and fix any issues which have been reported.");
+			throw new MigrateException("Issues did arise when migrating files and folders...Please review {$logFile->getName()} and fix any issues which have been reported.");
 		}
 
 		$migration->switchState(StateMigrateShares::class);

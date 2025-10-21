@@ -3,7 +3,6 @@
 namespace OCA\MigrateToInfiniteScale\Command;
 
 use OCA\MigrateToInfiniteScale\MigrationState\Migration;
-use OCA\MigrateToInfiniteScale\MigrationState\MigrateException;
 use OCA\MigrateToInfiniteScale\MigrationState\StateInit;
 use OCA\MigrateToInfiniteScale\MigrationState\State;
 use OCA\MigrateToInfiniteScale\MigrationState\VerifyStateException;

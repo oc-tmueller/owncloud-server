@@ -44,11 +44,11 @@ class StateMigrateUsers implements State {
 		$params['client'] = $client;  // include the oCIS client so we don't need to create a new one each time
 
 		$this->userManager->callForUsers(function (IUser $user) use ($params) {
-			$output = $params['output'];
 			if ($user->getEMailAddress() !== null && $user->isEnabled()) {
 				$this->migrateUser($user, $params);
 			} else {
-				$output->writeln(" {$user->getUserName()}/{$user->getEMailAddress()} <error>SKIPPED</error>");
+				'@phan-var array{output:\Symfony\Component\Console\Output\OutputInterface} $params'; // @phpstan-ignore-line
+				$params['output']->writeln(" {$user->getUserName()}/{$user->getEMailAddress()} <error>SKIPPED</error>");
 			}
 		});
 
@@ -58,6 +58,7 @@ class StateMigrateUsers implements State {
 		try {
 			$this->userGroupFinder->saveCache();
 		} catch (\UnexpectedValueException $ex) {
+			'@phan-var array{output:\Symfony\Component\Console\Output\OutputInterface} $params'; // @phpstan-ignore-line
 			$params['output']->writeln("<comment>Cache for the UserGroupFinder couldn't be saved: {$ex->getMessage()}</comment>");
 		}
 	}
