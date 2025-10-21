@@ -19,7 +19,10 @@
     </documentation>
     <commands>
         <command>OCA\MigrateToInfiniteScale\Command\Init</command>
-        <command>OCA\MigrateToInfiniteScale\Command\Migrate</command>
         <command>OCA\MigrateToInfiniteScale\Command\Verify</command>
+        <command>OCA\MigrateToInfiniteScale\Command\MigrateUsers</command>
+        <command>OCA\MigrateToInfiniteScale\Command\MigrateGroups</command>
+        <command>OCA\MigrateToInfiniteScale\Command\MigrateFiles</command>
+        <command>OCA\MigrateToInfiniteScale\Command\MigrateShares</command>
     </commands>
 </info>

@@ -1,11 +1,9 @@
 <?php
 
-namespace OCA\MigrateToInfiniteScale\Helper;
+namespace OCA\MigrateToInfiniteScale\ConflictLog;
 
-class ConflictLogFile {
-	/**
-	 * @var false|resource
-	 */
+class LogFile {
+	/** @var false|resource */
 	private $handle;
 	private string $path;
 

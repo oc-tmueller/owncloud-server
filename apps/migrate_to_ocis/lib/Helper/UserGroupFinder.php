@@ -5,8 +5,11 @@ use OCP\IUser;
 use OCP\IGroup;
 use OCP\IUserManager;
 use OCP\IGroupManager;
+use OCP\ITempManager;
+use OCA\MigrateToInfiniteScale\OCIS\Client;
 
 class UserGroupFinder {
+	private const CACHE_FILENAME = 'migrateToOcis-userGroupFinder.cache';
 	/**
 	 * map OC10 username -> ocis user id
 	 * @var array<string, string>
@@ -18,19 +21,21 @@ class UserGroupFinder {
 	 * @var array<string, string>
 	 */
 	private array $groupCache = [];
-	private OCISClient $ocisClient;
+	private Client $ocisClient;
 	private IUserManager $userManager;
 	private IGroupManager $groupManager;
+	private ITempManager $tempManager;
 
 	/**
-	 * @param OCISClient $ocisClient client to make requests if needed
+	 * @param Client $ocisClient client to make requests if needed
 	 * @param IUserManager $userManager get OC10 users by id if needed
 	 * @param IGroupManager $groupManager get OC10 groups by id if needed
 	 */
-	public function __construct(OCISClient $ocisClient, IUserManager $userManager, IGroupManager $groupManager) {
+	public function __construct(Client $ocisClient, IUserManager $userManager, IGroupManager $groupManager, ITempManager $tempManager) {
 		$this->ocisClient = $ocisClient;
 		$this->userManager = $userManager;
 		$this->groupManager = $groupManager;
+		$this->tempManager = $tempManager;
 	}
 
 	/**
@@ -143,5 +148,68 @@ class UserGroupFinder {
 			return $this->getGroup($token, $group);
 		}
 		return null;
+	}
+
+	/**
+	 * Save the cache in a temporary file for a later use.
+	 * The filename is fixed, and it will be saved in the temporary
+	 * directory.
+	 * @throws \UnexpectedValueException
+	 */
+	public function saveCache() {
+		$tmpFolder = $this->tempManager->getTempBaseDir();
+		if ($tmpFolder === '') {
+			throw new \UnexpectedValueException('Temporary folder is not set');
+		}
+
+		$targetFile = $tmpFolder . '/' . self::CACHE_FILENAME;
+		$content = \json_encode([
+			'users' => $this->userCache,
+			'groups' => $this->groupCache,
+		]);
+
+		$filePointer = \fopen($targetFile, 'c');
+		if (!\flock($filePointer, LOCK_EX)) {
+			throw new \UnexpectedValueException("Cannot get lock on file $targetFile");
+		}
+
+		\ftruncate($filePointer, 0);
+		\fwrite($filePointer, $content);
+		\fflush($filePointer);
+		\flock($filePointer, LOCK_UN);
+		\fclose($filePointer);
+	}
+
+	/**
+	 * Load the cache previously saved with "saveCache".
+	 * Note that this will overwrite any value that this instance had
+	 * before this call.
+	 * @throws \UnexpectedValueException
+	 */
+	public function loadCache() {
+		$tmpFolder = $this->tempManager->getTempBaseDir();
+		if ($tmpFolder === '') {
+			throw new \UnexpectedValueException('Temporary folder is not set');
+		}
+
+		$targetFile = $tmpFolder . '/' . self::CACHE_FILENAME;
+
+		$filePointer = \fopen($targetFile, 'r');
+		if (!\flock($filePointer, LOCK_EX)) {
+			throw new \UnexpectedValueException("Cannot get lock on file $targetFile");
+		}
+
+		\ftruncate($filePointer, 0);
+		$content = \fread($filePointer, \filesize($targetFile));  // need to read the whole file
+		\flock($filePointer, LOCK_UN);
+		\fclose($filePointer);
+
+		$data = \json_decode($content, true);
+		if (!\is_array($data)) {
+			throw new \UnexpectedValueException("Failed to decode json data on $targetFile");
+		}
+
+		$this->userCache = $data['users'];
+		$this->groupCache = $data['groups'];
 	}
 }

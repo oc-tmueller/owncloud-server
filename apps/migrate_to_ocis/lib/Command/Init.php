@@ -2,19 +2,27 @@
 
 namespace OCA\MigrateToInfiniteScale\Command;
 
-use OCP\IConfig;
-use Symfony\Component\Console\Command\Command;
+use OCA\MigrateToInfiniteScale\MigrationState\Migration;
+use OCA\MigrateToInfiniteScale\MigrationState\StateInit;
+use OCA\MigrateToInfiniteScale\MigrationState\State;
+use OCA\MigrateToInfiniteScale\MigrationState\VerifyStateException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Init extends Command {
-	private IConfig $config;
-	private bool $force;
-
-	public function __construct(IConfig $config) {
-		parent::__construct();
-		$this->config = $config;
+/**
+ * Initialize the migration.
+ * Only one migration can be "in progress". You can force this command to
+ * reinitialize the migration, but you'll lose all the progress made before.
+ * It can also cause problems if the target oCIS server is the same because
+ * there could be data already migrated that might cause problems.
+ */
+class Init extends CommandMigration {
+	/**
+	 * @param Migration $migration
+	 */
+	public function __construct(Migration $migration) {
+		parent::__construct($migration);
 	}
 
 	protected function configure() {
@@ -23,37 +31,41 @@ class Init extends Command {
 			->setDescription('Initialize the migration process. See also: https://doc.owncloud.com/server/latest/admin_manual/maintenance/migrating_to_ocis.html')
 			->addArgument('ocis_host', InputArgument::REQUIRED)
 			->addOption('force', 'f')
+			->addOption('insecure', 'k')
 		;
 	}
 
-	/**
-	 * @throws \JsonException
-	 */
-	protected function execute(InputInterface $input, OutputInterface $output): int {
-		$this->force = $input->getOption('force');
-
-		# setup ocis_host
+	protected function prepareParams(InputInterface $input, OutputInterface $output): array {
+		$force = $input->getOption('force');
+		$insecure = $input->getOption('insecure');
 		$new_ocis_host = $input->getArgument('ocis_host');
-		$this->saveSetting('ocis_host', $new_ocis_host);
 
-		$output->writeln("Migration initialized!");
-		$output->writeln('');
-		$output->writeln('Continue the migration with ./occ migrate:to-ocis:verify');
-
-		return 0;
+		return [
+			'force' => $force,
+			'value' => $new_ocis_host,
+			'insecure' => $insecure,
+		];
 	}
 
-	private function saveSetting(string $key, $value): void {
-		if (!$this->force) {
-			$existing_value = $this->config->getAppValue('migrate_to_ocis', $key, null);
-			if ($existing_value !== null) {
-				throw new \InvalidArgumentException("Value '$key' already set up.");
+	protected function verifyState(State $state, array &$params): ?string {
+		if (\get_class($state) !== StateInit::class) {
+			// We aren't in a starting state. We should abort.
+			// We only keep going and re-init the migration if forced
+			if (!$params['force']) {
+				throw new VerifyStateException('The current state of the migration doesn\'t allow re-initialization');
+			} else {
+				// switch to the initial state
+				return StateInit::class;
 			}
 		}
-		if (\is_array($value)) {
-			$value = json_encode($value, JSON_THROW_ON_ERROR);
-		}
+		return null;
+	}
 
-		$this->config->setAppValue('migrate_to_ocis', $key, $value);
+	protected function preMigrateActions(InputInterface $input, OutputInterface $output, array &$params) {
+		// Nothing to do
+	}
+
+	protected function postSavedActions(InputInterface $input, OutputInterface $output) {
+		$output->writeln("Migration initialized!");
 	}
 }
