@@ -8,6 +8,7 @@ use OCA\MigrateToInfiniteScale\ConflictLog\LogService;
 use OCA\MigrateToInfiniteScale\Helper\ProcessOutputLineProcessor;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateShares;
 use OCA\MigrateToInfiniteScale\MigrationState\MigrateException;
+use OCA\MigrateToInfiniteScale\OCIS\ClientException;
 use OCA\MigrateToInfiniteScale\OCIS\ClientService;
 use OCP\IConfig;
 use OCP\IUserManager;
@@ -67,6 +68,15 @@ class StateMigrateFiles implements State {
 	 * @throws MigrateException
 	 */
 	public function migrate(array $params, Migration $migration) {
+		try {
+			$this->doMigrate($params, $migration);
+		} catch (ClientException $ex) {
+			// there is a token exchange that could throw a ClientException
+			throw new MigrateException("Migrating files failed", 0, $ex);
+		}
+	}
+
+	private function doMigrate(array $params, Migration $migration) {
 		$now = $this->timeFactory->getTime();
 		$logFile = $this->logService->newLogFile();
 		if (!$logFile->open("migrate-ocis-$now.csv")) {

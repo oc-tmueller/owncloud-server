@@ -6,6 +6,7 @@ use OCA\MigrateToInfiniteScale\Helper\UserGroupFinder;
 use OCA\MigrateToInfiniteScale\MigrationState\Migration;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateGroups;
 use OCA\MigrateToInfiniteScale\OCIS\ClientService;
+use OCA\MigrateToInfiniteScale\OCIS\ClientException;
 use OCP\IUserManager;
 use OCP\IUser;
 
@@ -38,6 +39,14 @@ class StateMigrateUsers implements State {
 	 * Move to StateMigrateGroups on success.
 	 */
 	public function migrate(array $params, Migration $migration) {
+		try {
+			$this->doMigrate($params, $migration);
+		} catch (ClientException $ex) {
+			throw new MigrateException("Migrating users failed", 0, $ex);
+		}
+	}
+
+	private function doMigrate(array $params, Migration $migration) {
 		$client = $this->ocisClientService->newOCISClient();
 		$token = $client->tokenExchange($params['adminUser'], $params['adminPassword'], $params['adminUser']);
 		$params['adminPassword'] = $token;  // replace the admin's password with the token
@@ -48,7 +57,7 @@ class StateMigrateUsers implements State {
 				$this->migrateUser($user, $params);
 			} else {
 				'@phan-var array{output:\Symfony\Component\Console\Output\OutputInterface} $params'; // @phpstan-ignore-line
-				$params['output']->writeln(" {$user->getUserName()}/{$user->getEMailAddress()} <error>SKIPPED</error>");
+				$params['output']->writeln("{$user->getUserName()}/{$user->getEMailAddress()} - <error>SKIPPED</error>");
 			}
 		});
 
@@ -74,15 +83,25 @@ class StateMigrateUsers implements State {
 		$username = $user->getUserName();
 		$mail = $user->getEMailAddress();
 
-		$userBody = $client->createUser($token, $user);
-		if ($userBody) {
-			$client->assignRole($token, $userBody['id'], $roleId, $appId);
-			$output->writeln("{$username}/{$mail} - user created in ownCloud InfiniteScale.");
+		try {
+			$userBody = $client->createUser($adminUser, $token, $user);
+			$client->assignRole($adminUser, $token, $userBody['id'], $roleId, $appId);
+			$output->writeln("{$username}/{$mail} - user created");
 
 			// we might need the oCIS' user id later, so cache it now
 			$this->userGroupFinder->addUserToCache($user, $userBody['id']);
-		} else {
-			$output->writeln("{$username}/{$mail} - user already existing in ownCloud InfiniteScale.");
+		} catch (ClientException $ex) {
+			if ($ex->getCode() === 409 && $ex->getOriginClientFunction() === 'createUser') {
+				// if there is a 409 in the createUser function, assume the
+				// user already exists in oCIS -> show a message and keep going.
+				$body = \json_decode($ex->getRawBody(), true);
+				$errorMessage = $body['error']['message'] ?? 'unknown error';
+				$output->writeln("{$username}/{$mail} - {$errorMessage}");
+			} else {
+				// rethrow the exception. This includes errors from the
+				// createUser and assignRole methods,
+				throw $ex;
+			}
 		}
 	}
 

@@ -39,10 +39,11 @@ class StateVerify implements State {
 		# ensure all users have an email address ...
 		$this->userManager->callForUsers(function (IUser $user) use (&$verified, &$email_addresses, $output) {
 			if (!$user->isEnabled()) {
-				$output->writeln("<warn>Disabled user {$user->getUID()} - it cannot be migrated to ownCloud InfiniteScale!</warn>");
+				$output->writeln("<fg=red;options=bold>Disabled user {$user->getUID()} - it will be skipped!</>");
 				return;
 			}
 			if (!$this->hasValidEMail($user)) {
+				$output->writeln("<error>{$user->getUID()} has an invalid email</error>");
 				$verified = false;
 			} else {
 				# save users by their email addresses ...
@@ -52,6 +53,10 @@ class StateVerify implements State {
 				$email_addresses[$email_address] = $a;
 			}
 		});
+
+		if (!$verified) {
+			throw new MigrateException("Some users have invalid emails");
+		}
 
 		# detect duplicate email addresses
 		$sup_email_addresses = array_filter($email_addresses, static function (array $a) {

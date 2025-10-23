@@ -46,7 +46,7 @@ class MigrateUsers extends CommandMigration {
 
 		$client = $this->ocisClientService->newOCISClient();
 		$token = $client->tokenExchange($user, $password, $user);
-		$apps = $client->getApplications($token);
+		$apps = $client->getApplications($user, $token);
 		$chosenAppRole = $this->askForDefaultRole($input, $output, $apps);
 
 		$params = [

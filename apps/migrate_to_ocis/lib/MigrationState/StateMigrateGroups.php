@@ -5,6 +5,7 @@ namespace OCA\MigrateToInfiniteScale\MigrationState;
 use OCA\MigrateToInfiniteScale\Helper\UserGroupFinder;
 use OCA\MigrateToInfiniteScale\MigrationState\Migration;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateFiles;
+use OCA\MigrateToInfiniteScale\OCIS\ClientException;
 use OCA\MigrateToInfiniteScale\OCIS\ClientService;
 use OCP\IGroupManager;
 use OCP\IGroup;
@@ -37,6 +38,14 @@ class StateMigrateGroups implements State {
 	 * Move to StateMigrateFiles on success.
 	 */
 	public function migrate(array $params, Migration $migration) {
+		try {
+			$this->doMigrate($params, $migration);
+		} catch (ClientException $ex) {
+			throw new MigrateException("Migrating groups failed", 0, $ex);
+		}
+	}
+
+	private function doMigrate(array $params, Migration $migration) {
 		$client = $this->ocisClientService->newOCISClient();
 		$token = $client->tokenExchange($params['adminUser'], $params['adminPassword'], $params['adminUser']);
 		$params['adminPassword'] = $token;  // replace the admin's password with the token
@@ -68,36 +77,45 @@ class StateMigrateGroups implements State {
 	}
 
 	private function migrateGroup(IGroup $group, array $params) {
+		$adminUser = $params['adminUser'];
 		$token = $params['adminPassword'];
 		$client = $params['client'];
 		$output = $params['output'];
 
-		$groupBody = $client->createGroup($token, $group);
-		if (!$groupBody) {
+		try {
+			$groupBody = $client->createGroup($adminUser, $token, $group);
+		} catch (ClientException $ex) {
+			if ($ex->getCode() !== 409) {
+				// if not 409, rethrow the exception
+				throw $ex;
+			}
 			// if the group isn't created, try to find it
-			$groupBody = $client->checkGroup($token, $group);
+			$groupBody = $client->checkGroup($adminUser, $token, $group);
 		}
 
 		if ($groupBody) {
 			foreach ($group->getUsers() as $user) {
 				$username = $user->getUserName();
-				$ocisUserId = $this->userGroupFinder->getUser($token, $user);
+				$ocisUserId = $this->userGroupFinder->getUser($adminUser, $token, $user);
 				if ($ocisUserId === null) {
-					$output->writeln("  skipped {$group->getDisplayName()} {$username}");
+					$output->writeln("  {$group->getDisplayName()} {$username} <error>SKIPPED</error>");
 					continue;
 				}
 
-				$result = $client->addMemberToGroup($token, $groupBody['id'], $ocisUserId);
-				if ($result) {
-					$output->writeln("  added {$group->getDisplayName()} {$username}");
-				} else {
-					$output->writeln("  FAILED {$group->getDisplayName()} {$username}");
+				try {
+					$client->addMemberToGroup($adminUser, $token, $groupBody['id'], $ocisUserId);
+					$output->writeln("  {$group->getDisplayName()} {$username} added");
+				} catch (ClientException $ex) {
+					if ($ex->getCode() !== 409) {
+						throw $ex;
+					}
+					$output->writeln("  {$group->getDisplayName()} {$username} <error>FAILED</error>");
 				}
 			}
 			// add the group to the cache
 			$this->userGroupFinder->addGroupToCache($group, $groupBody['id']);
 		} else {
-			$output->writeln("failed to create group {$group->getDisplayName()}");
+			$output->writeln("<error>failed to create group {$group->getDisplayName()}</error>");
 		}
 	}
 
