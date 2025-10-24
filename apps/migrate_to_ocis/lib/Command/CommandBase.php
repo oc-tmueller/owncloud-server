@@ -21,6 +21,14 @@ class CommandBase extends Command {
 			"Password for $adminUser: ",
 		);
 		$question->setHidden(true);
+		$question->setValidator(function ($answer) {
+			if (!\is_string($answer) || \strlen($answer) === 0) {
+				throw new \RuntimeException('The password must not be an empty string');
+			}
+			return $answer;
+		});
+		$question->setMaxAttempts(3);
+
 		return $helper->ask($input, $output, $question);
 	}
 

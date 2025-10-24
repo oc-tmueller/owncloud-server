@@ -16,6 +16,9 @@ interface State {
 	 * `$migration->switchState(StateSecond::class)`.
 	 * Other methods of the migration instance shouldn't be used from the state.
 	 *
+	 * @param array $params key-value pairs with the parameters to run
+	 * the method
+	 * @param Migration $migration the migration to switch the state
 	 * @throws MigrateException
 	 */
 	public function migrate(array $params, Migration $migration);

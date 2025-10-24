@@ -68,13 +68,14 @@ class UserGroupFinder {
 	 * @param IUser $user the OC10 user
 	 * @return string|null the matched oCIS user id or null if the user
 	 * isn't found
-	 * @throws \RuntimeException if tries to connect to oCIS and fails
+	 * @throws \OCA\MigrateToInfiniteScale\OCIS\ClientException if tries
+	 * to connect to oCIS and fails
 	 */
-	public function getUser(string $token, IUser $user): ?string {
+	public function getUser(string $admin_user, string $token, IUser $user): ?string {
 		$username = $user->getUserName();
 		if (!isset($this->userCache[$username])) {
 			// find user in ocis
-			$foundUser = $this->ocisClient->checkUser($token, $user);
+			$foundUser = $this->ocisClient->checkUser($admin_user, $token, $user);
 			if ($foundUser) {
 				$this->userCache[$username] = $foundUser['id'];
 			}
@@ -95,13 +96,14 @@ class UserGroupFinder {
 	 * @param IGroup $group the OC10 group
 	 * @return string|null the matched oCIS group id or null if the group
 	 * isn't found
-	 * @throws \RuntimeException if tries to connect to ocis and fails
+	 * @throws \OCA\MigrateToInfiniteScale\OCIS\ClientException if tries
+	 * to connect to oCIS and fails
 	 */
-	public function getGroup(string $token, IGroup $group): ?string {
+	public function getGroup(string $admin_user, string $token, IGroup $group): ?string {
 		$groupname = $group->getDisplayName();
 		if (!isset($this->groupCache[$groupname])) {
 			// find group in ocis
-			$foundGroup = $this->ocisClient->checkGroup($token, $group);
+			$foundGroup = $this->ocisClient->checkGroup($admin_user, $token, $group);
 			if ($foundGroup) {
 				$this->groupCache[$groupname] = $foundGroup['id'];
 			}
@@ -120,12 +122,13 @@ class UserGroupFinder {
 	 * @param string $oc10UserId the OC10 user id
 	 * @return string|null the matched oCIS user id or null if the user
 	 * isn't found
-	 * @throws \RuntimeException if tries to connect to ocis and fails
+	 * @throws \OCA\MigrateToInfiniteScale\OCIS\ClientException if tries
+	 * to connect to oCIS and fails
 	 */
-	public function getUserById(string $token, string $oc10UserId): ?string {
+	public function getUserById(string $admin_user, string $token, string $oc10UserId): ?string {
 		$user = $this->userManager->get($oc10UserId);
 		if ($user) {
-			return $this->getUser($token, $user);
+			return $this->getUser($admin_user, $token, $user);
 		}
 		return null;
 	}
@@ -140,12 +143,13 @@ class UserGroupFinder {
 	 * @param string $oc10GroupId the OC10 group id
 	 * @return string|null the matched oCIS group id or null if the group
 	 * isn't found
-	 * @throws \RuntimeException if tries to connect to ocis and fails
+	 * @throws \OCA\MigrateToInfiniteScale\OCIS\ClientException if tries
+	 * to connect to oCIS and fails
 	 */
-	public function getGroupById(string $token, string $oc10GroupId) {
+	public function getGroupById(string $admin_user, string $token, string $oc10GroupId) {
 		$group = $this->groupManager->get($oc10GroupId);
 		if ($group) {
-			return $this->getGroup($token, $group);
+			return $this->getGroup($admin_user, $token, $group);
 		}
 		return null;
 	}

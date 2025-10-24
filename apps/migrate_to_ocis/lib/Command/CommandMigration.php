@@ -150,7 +150,7 @@ abstract class CommandMigration extends CommandBase {
 				$this->migration->switchState($result);
 			}
 		} catch (VerifyStateException $ex) {
-			$output->writeln("<error>Failed to verify the state: {$ex->getMessage()}</error>");
+			$this->printException($output, $ex);
 
 			// if the state is the last one (StateFinish) show a different message
 			if (\get_class($this->migration->getState()) === StateFinish::class) {
@@ -162,13 +162,20 @@ abstract class CommandMigration extends CommandBase {
 		}
 
 		// run the pre-migrate actions
-		$this->preMigrateActions($input, $output, $params);
+		try {
+			$this->preMigrateActions($input, $output, $params);
+		} catch (\Exception $ex) {
+			// no expectation on the exceptions thrown by the
+			// preMigrateActions method, so catch all for now
+			$this->printException($output, $ex);
+			return 1;
+		}
 
 		// run the migration
 		try {
 			$this->migration->runMigration($params);
-		} catch (MigrateException $e) {
-			$output->writeln("<error>Something went wrong: {$e->getMessage()}</error>");
+		} catch (MigrateException $ex) {
+			$this->printException($output, $ex);
 			return 1;
 		}
 
@@ -185,5 +192,19 @@ abstract class CommandMigration extends CommandBase {
 			$output->writeln("Continue the migration with {$currentState->associatedCommand()}");
 		}
 		return 0;
+	}
+
+	private function printException(OutputInterface $output, \Exception $ex) {
+		$formatter = $this->getHelper('formatter');
+
+		$messages = [$ex->getMessage()];
+		$previous = $ex->getPrevious();
+		while ($previous !== null) {
+			$messages[] = "Caused by: {$previous->getMessage()}";
+			$previous = $previous->getPrevious();
+		}
+
+		$formattedBlock = $formatter->formatBlock($messages, 'error', true);
+		$output->writeln($formattedBlock);
 	}
 }
