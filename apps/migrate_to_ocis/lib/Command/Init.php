@@ -5,7 +5,7 @@ namespace OCA\MigrateToInfiniteScale\Command;
 use OCA\MigrateToInfiniteScale\MigrationState\Migration;
 use OCA\MigrateToInfiniteScale\MigrationState\StateInit;
 use OCA\MigrateToInfiniteScale\MigrationState\State;
-use OCA\MigrateToInfiniteScale\MigrationState\VerifyStateException;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\VerifyStateException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -26,6 +26,7 @@ class Init extends CommandMigration {
 	}
 
 	protected function configure() {
+		parent::configure();
 		$this
 			->setName('migrate:to-ocis:init')
 			->setDescription('Initialize the migration process. See also: https://doc.owncloud.com/server/latest/admin_manual/maintenance/migrating_to_ocis.html')

@@ -10,6 +10,10 @@ class StateFinish implements State {
 	public function migrate(array $params, Migration $migration) {
 	}
 
+	// Nothing to do
+	public function skip(array $params, Migration $migration) {
+	}
+
 	public function associatedCommand(): string {
 		return '';
 	}

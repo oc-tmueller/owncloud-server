@@ -3,8 +3,10 @@
 namespace OCA\MigrateToInfiniteScale\MigrationState;
 
 use OCA\MigrateToInfiniteScale\Helper\UserGroupFinder;
+use OCA\MigrateToInfiniteScale\Helper\UserHandler;
 use OCA\MigrateToInfiniteScale\MigrationState\Migration;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateGroups;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\MigrateException;
 use OCA\MigrateToInfiniteScale\OCIS\ClientService;
 use OCA\MigrateToInfiniteScale\OCIS\ClientException;
 use OCP\IUserManager;
@@ -13,14 +15,17 @@ use OCP\IUser;
 class StateMigrateUsers implements State {
 	/** @var UserGroupFinder */
 	private UserGroupFinder $userGroupFinder;
+	/** @var UserHandler */
+	private UserHandler $userHandler;
 	/** @var IUserManager */
 	private IUserManager $userManager;
 	/** @var ClientService */
 	private ClientService $ocisClientService;
 
-	public function __construct(ClientService $ocisClientService, UserGroupFinder $userGroupFinder, IUserManager $userManager) {
+	public function __construct(ClientService $ocisClientService, UserHandler $userHandler, UserGroupFinder $userGroupFinder, IUserManager $userManager) {
 		$this->ocisClientService = $ocisClientService;
 		$this->userGroupFinder = $userGroupFinder;
+		$this->userHandler = $userHandler;
 		$this->userManager = $userManager;
 	}
 
@@ -53,7 +58,7 @@ class StateMigrateUsers implements State {
 		$params['client'] = $client;  // include the oCIS client so we don't need to create a new one each time
 
 		$this->userManager->callForUsers(function (IUser $user) use ($params) {
-			if ($user->getEMailAddress() !== null && $user->isEnabled()) {
+			if ($this->userHandler->canBeMigrated($user)) {
 				$this->migrateUser($user, $params);
 			} else {
 				'@phan-var array{output:\Symfony\Component\Console\Output\OutputInterface} $params'; // @phpstan-ignore-line
@@ -103,6 +108,14 @@ class StateMigrateUsers implements State {
 				throw $ex;
 			}
 		}
+	}
+
+	public function skip(array $params, Migration $migration) {
+		// "migrate" would overwrite the contents of the UserGroupFinder cache;
+		// in this case, we'll delete the file to prevent getting wrong data
+		// from other migrations that could be left in the cache file.
+		$this->userGroupFinder->cleanCache();
+		$migration->switchState(StateMigrateGroups::class);
 	}
 
 	public function associatedCommand(): string {

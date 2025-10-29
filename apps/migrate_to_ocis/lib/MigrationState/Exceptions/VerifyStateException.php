@@ -1,6 +1,6 @@
 <?php
 
-namespace OCA\MigrateToInfiniteScale\MigrationState;
+namespace OCA\MigrateToInfiniteScale\MigrationState\Exceptions;
 
 /**
  * Commands in the "OCA\MigrateToInfiniteScale\Command" namespace

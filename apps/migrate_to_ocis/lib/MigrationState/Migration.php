@@ -5,6 +5,8 @@ namespace OCA\MigrateToInfiniteScale\MigrationState;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IConfig;
 use OCA\MigrateToInfiniteScale\MigrationState\Factory;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\MigrateException;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\UnskippableException;
 
 /**
  * Represent the migration process.
@@ -103,8 +105,21 @@ class Migration {
 	/**
 	 * Run the "migrate" action of the currently loaded state. The action
 	 * will run with the provided parameters.
+	 *
+	 * @param array $params
+	 * @throws MigrateException
 	 */
 	public function runMigration(array $params) {
 		$this->state->migrate($params, $this);
+	}
+
+	/**
+	 * Run the "skip" action of the currently loaded state.
+	 *
+	 * @param array $params
+	 * @throws UnskippableException
+	 */
+	public function runSkip(array $params) {
+		$this->state->skip($params, $this);
 	}
 }

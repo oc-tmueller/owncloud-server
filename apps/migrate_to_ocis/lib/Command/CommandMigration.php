@@ -5,10 +5,11 @@ namespace OCA\MigrateToInfiniteScale\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use OCA\MigrateToInfiniteScale\MigrationState\Migration;
-use OCA\MigrateToInfiniteScale\MigrationState\MigrateException;
 use OCA\MigrateToInfiniteScale\MigrationState\State;
 use OCA\MigrateToInfiniteScale\MigrationState\StateFinish;
-use OCA\MigrateToInfiniteScale\MigrationState\VerifyStateException;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\MigrateException;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\UnskippableException;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\VerifyStateException;
 
 /**
  * The CommandMigration class will provide the same execute method for all
@@ -56,6 +57,15 @@ abstract class CommandMigration extends CommandBase {
 	public function __construct(Migration $migration) {
 		parent::__construct();
 		$this->migration = $migration;
+	}
+
+	/**
+	 * Configure the "skip" option for all the commands.
+	 * Subclass should call this method (via "parent::configure()") and
+	 * then configure whatever the actual command needs.
+	 */
+	protected function configure() {
+		$this->addOption('skip', null, null, 'skip this command and move to the next one');
 	}
 
 	/**
@@ -161,6 +171,36 @@ abstract class CommandMigration extends CommandBase {
 			return 1;
 		}
 
+		// check what action to run
+		$action = 'runMigration';
+		if ($input->getOption('skip')) {
+			$action = 'runSkip';
+		}
+
+		// run the action
+		$code = $this->$action($input, $output, $params);
+		if ($code !== 0) {
+			// If code isn't 0 then the action failed.
+			// Abort immediately without saving the state
+			return $code;
+		}
+
+		// save the state
+		$this->migration->saveState();
+
+		// run post-saved actions
+		$this->postSavedActions($input, $output);
+
+		$currentState = $this->migration->getState();
+		if (\get_class($currentState) === StateFinish::class) {
+			$output->writeln('Data migration has ended. There is nothing left to do.');
+		} else {
+			$output->writeln("Continue the migration with {$currentState->associatedCommand()}");
+		}
+		return 0;
+	}
+
+	private function runMigration(InputInterface $input, OutputInterface $output, array $params): int {
 		// run the pre-migrate actions
 		try {
 			$this->preMigrateActions($input, $output, $params);
@@ -179,19 +219,21 @@ abstract class CommandMigration extends CommandBase {
 			return 1;
 		}
 
-		// save the state
-		$this->migration->saveState();
-
-		// run post-saved actions
-		$this->postSavedActions($input, $output);
-
-		$currentState = $this->migration->getState();
-		if (\get_class($currentState) === StateFinish::class) {
-			$output->writeln('Data migration has ended. There is nothing left to do.');
-		} else {
-			$output->writeln("Continue the migration with {$currentState->associatedCommand()}");
-		}
 		return 0;
+	}
+
+	private function runSkip(InputInterface $input, OutputInterface $output, array $params): int {
+		try {
+			$this->migration->runSkip($params);
+			return 0;
+		} catch (UnskippableException $ex) {
+			$message = "This command cannot be skipped";
+			if ($ex->getMessage() !== '') {
+				$message .= ": {$ex->getMessage()}";
+			}
+			$output->writeln("<error>{$message}</error>");
+		}
+		return 1;
 	}
 
 	private function printException(OutputInterface $output, \Exception $ex) {
