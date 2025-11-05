@@ -1,6 +1,6 @@
 <?php
 
-namespace OCA\MigrateToInfiniteScale\MigrationState;
+namespace OCA\MigrateToInfiniteScale\MigrationState\Exceptions;
 
 /**
  * Exception that happens during the State's "migrate" action

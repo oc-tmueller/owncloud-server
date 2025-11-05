@@ -2,25 +2,24 @@
 
 namespace OCA\MigrateToInfiniteScale\Command;
 
-use OCA\MigrateToInfiniteScale\OCIS\ClientService;
 use OCA\MigrateToInfiniteScale\MigrationState\Migration;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateUsers;
 use OCA\MigrateToInfiniteScale\MigrationState\State;
-use OCA\MigrateToInfiniteScale\MigrationState\VerifyStateException;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\VerifyStateException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class MigrateUsers extends CommandMigration {
-	/** @var ClientService */
-	private ClientService $ocisClientService;
-
-	public function __construct(Migration $migration, ClientService $ocisClientService) {
+	/**
+	 * @param Migration $migration
+	 */
+	public function __construct(Migration $migration) {
 		parent::__construct($migration);
-		$this->ocisClientService = $ocisClientService;
 	}
 
 	protected function configure() {
+		parent::configure();
 		$this
 			->setName('migrate:to-ocis:migrate:users')
 			->setDescription('Migrates ownCloud users to the configured ocis instance. See also: https://doc.owncloud.com/server/latest/admin_manual/maintenance/migrating_to_ocis.html')
@@ -44,14 +43,7 @@ class MigrateUsers extends CommandMigration {
 		$user = $input->getArgument('ocis-admin');
 		$password = $this->askAdminPassword($input, $output, $user);
 
-		$client = $this->ocisClientService->newOCISClient();
-		$token = $client->tokenExchange($user, $password, $user);
-		$apps = $client->getApplications($user, $token);
-		$chosenAppRole = $this->askForDefaultRole($input, $output, $apps);
-
 		$params = [
-			'roleId' => $chosenAppRole[1],
-			'appId' => $chosenAppRole[0],
 			'adminUser' => $user,
 			'adminPassword' => $password,
 			'output' => $output,

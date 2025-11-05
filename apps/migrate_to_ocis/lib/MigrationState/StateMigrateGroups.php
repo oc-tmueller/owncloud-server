@@ -5,6 +5,7 @@ namespace OCA\MigrateToInfiniteScale\MigrationState;
 use OCA\MigrateToInfiniteScale\Helper\UserGroupFinder;
 use OCA\MigrateToInfiniteScale\MigrationState\Migration;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateFiles;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\MigrateException;
 use OCA\MigrateToInfiniteScale\OCIS\ClientException;
 use OCA\MigrateToInfiniteScale\OCIS\ClientService;
 use OCP\IGroupManager;
@@ -117,6 +118,10 @@ class StateMigrateGroups implements State {
 		} else {
 			$output->writeln("<error>failed to create group {$group->getDisplayName()}</error>");
 		}
+	}
+
+	public function skip(array $params, Migration $migration) {
+		$migration->switchState(StateMigrateFiles::class);
 	}
 
 	public function associatedCommand(): string {

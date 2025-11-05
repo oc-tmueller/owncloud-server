@@ -216,4 +216,15 @@ class UserGroupFinder {
 		$this->userCache = $data['users'];
 		$this->groupCache = $data['groups'];
 	}
+
+	public function cleanCache() {
+		$tmpFolder = $this->tempManager->getTempBaseDir();
+		if ($tmpFolder === '') {
+			// file can't be saved here
+			return;
+		}
+
+		$targetFile = $tmpFolder . '/' . self::CACHE_FILENAME;
+		\unlink($targetFile);
+	}
 }

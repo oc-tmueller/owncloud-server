@@ -4,11 +4,13 @@ namespace OCA\MigrateToInfiniteScale\MigrationState;
 
 use OC\Authentication\Token\DefaultTokenProvider;
 use OCA\MigrateToInfiniteScale\Helper\UserGroupFinder;
+use OCA\MigrateToInfiniteScale\Helper\UserHandler;
 use OCA\MigrateToInfiniteScale\ConflictLog\LogService;
 use OCA\MigrateToInfiniteScale\MigrationState\State;
 use OCA\MigrateToInfiniteScale\MigrationState\StateInit;
 use OCA\MigrateToInfiniteScale\MigrationState\StateVerify;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateUsers;
+use OCA\MigrateToInfiniteScale\MigrationState\StateAssignRole;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateGroups;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateFiles;
 use OCA\MigrateToInfiniteScale\MigrationState\StateFinish;
@@ -40,6 +42,8 @@ class Factory {
 	private IManager $shareManager;
 	/** @var UserGroupFinder */
 	private UserGroupFinder $userGroupFinder;
+	/** @var UserHandler */
+	private UserHandler $userHandler;
 	/** @var ClientService */
 	private ClientService $ocisClientService;
 	/** @var LogService */
@@ -58,6 +62,7 @@ class Factory {
 		IGroupManager $groupManager,
 		IManager $shareManager,
 		ClientService $ocisClientService,
+		UserHandler $userHandler,
 		UserGroupFinder $userGroupFinder,
 		LogService $logService,
 		DefaultTokenProvider $tokenProvider,
@@ -69,6 +74,7 @@ class Factory {
 		$this->groupManager = $groupManager;
 		$this->shareManager = $shareManager;
 		$this->ocisClientService = $ocisClientService;
+		$this->userHandler = $userHandler;
 		$this->userGroupFinder = $userGroupFinder;
 		$this->logService = $logService;
 		$this->tokenProvider = $tokenProvider;
@@ -139,7 +145,10 @@ class Factory {
 				return new StateVerify($this->userManager);
 			},
 			StateMigrateUsers::class => function () {
-				return new StateMigrateUsers($this->ocisClientService, $this->userGroupFinder, $this->userManager);
+				return new StateMigrateUsers($this->ocisClientService, $this->userHandler, $this->userGroupFinder, $this->userManager);
+			},
+			StateAssignRole::class => function () {
+				return new StateAssignRole($this->ocisClientService, $this->userHandler, $this->userGroupFinder, $this->userManager);
 			},
 			StateMigrateGroups::class => function () {
 				return new StateMigrateGroups($this->ocisClientService, $this->userGroupFinder, $this->groupManager);
@@ -147,6 +156,7 @@ class Factory {
 			StateMigrateFiles::class => function () {
 				return new StateMigrateFiles(
 					$this->ocisClientService,
+					$this->userHandler,
 					$this->userManager,
 					$this->config,
 					$this->logService,
@@ -158,6 +168,7 @@ class Factory {
 			StateMigrateShares::class => function () {
 				return new StateMigrateShares(
 					$this->ocisClientService,
+					$this->userHandler,
 					$this->userGroupFinder,
 					$this->userManager,
 					$this->shareManager,

@@ -3,8 +3,11 @@
 namespace OCA\MigrateToInfiniteScale\MigrationState;
 
 use OCA\MigrateToInfiniteScale\Helper\UserGroupFinder;
+use OCA\MigrateToInfiniteScale\Helper\UserHandler;
 use OCA\MigrateToInfiniteScale\Helper\SharePermissionMapper;
 use OCA\MigrateToInfiniteScale\MigrationState\StateFinish;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\MigrateException;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\UnskippableException;
 use OCA\MigrateToInfiniteScale\OCIS\ClientException;
 use OCA\MigrateToInfiniteScale\OCIS\ClientService;
 use OCA\MigrateToInfiniteScale\OCIS\Client;
@@ -18,6 +21,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 class StateMigrateShares implements State {
 	/** @var ClientService */
 	private ClientService $ocisClientService;
+	/** @var UserHandler */
+	private UserHandler $userHandler;
 	/** @var UserGroupFinder */
 	private UserGroupFinder $userGroupFinder;
 	/** @var IUserManager */
@@ -25,8 +30,15 @@ class StateMigrateShares implements State {
 	/** @var IManager */
 	private IManager $shareManager;
 
-	public function __construct(ClientService $ocisClientService, UserGroupFinder $userGroupFinder, IUserManager $userManager, IManager $shareManager) {
+	public function __construct(
+		ClientService $ocisClientService,
+		UserHandler $userHandler,
+		UserGroupFinder $userGroupFinder,
+		IUserManager $userManager,
+		IManager $shareManager
+	) {
 		$this->ocisClientService = $ocisClientService;
+		$this->userHandler = $userHandler;
 		$this->userGroupFinder = $userGroupFinder;
 		$this->userManager = $userManager;
 		$this->shareManager = $shareManager;
@@ -76,9 +88,15 @@ class StateMigrateShares implements State {
 		}
 
 		$this->userManager->callForUsers(function (IUser $user) use ($client, $permMapper, $permissionMap, $params) {
-			if ($user->getEMailAddress() !== null && $user->isEnabled()) {
-				$output = $params['output'];
-				$output->writeln(" " . $user->getUserName() . "/" . $user->getEMailAddress());
+			$output = $params['output'];
+			$output->writeln(" " . $user->getUserName() . "/" . $user->getEMailAddress());
+
+			if ($user->getLastLogin() === 0) {
+				$output->writeln("  User hasn't logged in. Skipping");
+				return;
+			}
+
+			if ($this->userHandler->hasBeenMigrated($params['adminUser'], $params['adminPassword'], $user)) {
 				// include the userToken in the params because it will be used
 				// in the createSharesForUser and createLinkSharesForUser methods.
 				if ($user->getUID() === $params['adminUser']) {
@@ -89,6 +107,8 @@ class StateMigrateShares implements State {
 
 				$this->createSharesForUser($this->shareManager, $user, $this->userGroupFinder, $permMapper, $permissionMap, $client, $params);
 				$this->createLinkSharesForUser($this->shareManager, $user, $client, $params);
+			} else {
+				$output->writeln("  <error>User not found in oCIS. Skipping file migration for this user</error>");
 			}
 		});
 
@@ -100,6 +120,10 @@ class StateMigrateShares implements State {
 		} catch (\UnexpectedValueException $ex) {
 			$output->writeln("<comment>Cache for the UserGroupFinder couldn't be saved: {$ex->getMessage()}</comment>");
 		}
+	}
+
+	public function skip(array $params, Migration $migration) {
+		throw new UnskippableException();
 	}
 
 	public function associatedCommand(): string {

@@ -4,6 +4,7 @@ namespace OCA\MigrateToInfiniteScale\MigrationState;
 
 use OCA\MigrateToInfiniteScale\MigrationState\Migration;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateUsers;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\MigrateException;
 use OCA\MigrateToInfiniteScale\Helper\EMailAddress;
 use OCP\IUserManager;
 use OCP\IUser;
@@ -90,6 +91,10 @@ class StateVerify implements State {
 			return false;
 		}
 		return true;
+	}
+
+	public function skip(array $params, Migration $migration) {
+		$migration->switchState(StateMigrateUsers::class);
 	}
 
 	public function associatedCommand(): string {

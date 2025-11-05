@@ -6,8 +6,10 @@ use OC\Authentication\Token\DefaultTokenProvider;
 use OCA\MigrateToInfiniteScale\ConflictLog\LogFile;
 use OCA\MigrateToInfiniteScale\ConflictLog\LogService;
 use OCA\MigrateToInfiniteScale\Helper\ProcessOutputLineProcessor;
+use OCA\MigrateToInfiniteScale\Helper\UserHandler;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateShares;
-use OCA\MigrateToInfiniteScale\MigrationState\MigrateException;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\MigrateException;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\UnskippableException;
 use OCA\MigrateToInfiniteScale\OCIS\ClientException;
 use OCA\MigrateToInfiniteScale\OCIS\ClientService;
 use OCP\IConfig;
@@ -24,6 +26,8 @@ class StateMigrateFiles implements State {
 
 	/** @var ClientService */
 	private ClientService $ocisClientService;
+	/** @var UserHandler */
+	private UserHandler $userHandler;
 	/** @var IUserManager */
 	private IUserManager $userManager;
 	/** @var IConfig */
@@ -39,6 +43,7 @@ class StateMigrateFiles implements State {
 
 	public function __construct(
 		ClientService $ocisClientService,
+		UserHandler $userHandler,
 		IUserManager $userManager,
 		IConfig $config,
 		LogService $logService,
@@ -47,6 +52,7 @@ class StateMigrateFiles implements State {
 		ITimeFactory $timeFactory
 	) {
 		$this->ocisClientService = $ocisClientService;
+		$this->userHandler = $userHandler;
 		$this->userManager = $userManager;
 		$this->config = $config;
 		$this->logService = $logService;
@@ -97,12 +103,21 @@ class StateMigrateFiles implements State {
 
 		$ok = true;
 		$this->userManager->callForUsers(function (IUser $user) use (&$ok, $logFile, $params) {
-			if ($user->getEMailAddress() !== null && $user->isEnabled()) {
-				'@phan-var array{output:OutputInterface} $params'; // @phpstan-ignore-line
-				$params['output']->writeln(" " . $user->getUserName() . "/" . $user->getEMailAddress());
+			$output = $params['output'];
+			'@phan-var OutputInterface $output'; // @phpstan-ignore-line
+			$output->writeln(" " . $user->getUserName() . "/" . $user->getEMailAddress());
+
+			if ($user->getLastLogin() === 0) {
+				$output->writeln("  User hasn't logged in. Skipping");
+				return;
+			}
+
+			if ($this->userHandler->hasBeenMigrated($params['adminUser'], $params['adminPassword'], $user)) {
 				if (!$this->cloneFilesForUser($user, $logFile, $params)) {
 					$ok = false;
 				}
+			} else {
+				$output->writeln("  <error>User not found in oCIS. Skipping file migration for this user</error>");
 			}
 		});
 
@@ -111,6 +126,10 @@ class StateMigrateFiles implements State {
 		}
 
 		$migration->switchState(StateMigrateShares::class);
+	}
+
+	public function skip(array $params, Migration $migration) {
+		throw new UnskippableException();
 	}
 
 	public function associatedCommand(): string {

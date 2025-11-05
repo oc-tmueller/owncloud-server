@@ -7,6 +7,7 @@ use OCP\AppFramework\IAppContainer;
 use OCP\AppFramework\App;
 use OCP\Http\Client\IWebDavClientService;
 use OCA\MigrateToInfiniteScale\Helper\UserGroupFinder;
+use OCA\MigrateToInfiniteScale\Helper\UserHandler;
 use OCA\MigrateToInfiniteScale\MigrationState\Factory;
 use OCA\MigrateToInfiniteScale\OCIS\ClientService;
 use OCA\MigrateToInfiniteScale\ConflictLog\LogService;
@@ -37,6 +38,7 @@ class Application extends App {
 				$server->getGroupManager(),
 				$server->getShareManager(),
 				$c->query(ClientService::class),
+				$c->query(UserHandler::class),
 				$c->query(UserGroupFinder::class),
 				$c->query(LogService::class),
 				$server->query(DefaultTokenProvider::class),

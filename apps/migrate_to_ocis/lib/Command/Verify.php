@@ -6,7 +6,7 @@ use OCA\MigrateToInfiniteScale\Helper\Storage;
 use OCA\MigrateToInfiniteScale\MigrationState\Migration;
 use OCA\MigrateToInfiniteScale\MigrationState\StateVerify;
 use OCA\MigrateToInfiniteScale\MigrationState\State;
-use OCA\MigrateToInfiniteScale\MigrationState\VerifyStateException;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\VerifyStateException;
 use OCP\Util;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;

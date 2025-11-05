@@ -3,8 +3,9 @@
 namespace OCA\MigrateToInfiniteScale\MigrationState;
 
 use OCA\MigrateToInfiniteScale\MigrationState\Migration;
-use OCA\MigrateToInfiniteScale\MigrationState\MigrateException;
 use OCA\MigrateToInfiniteScale\MigrationState\StateVerify;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\MigrateException;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\UnskippableException;
 use OCP\IConfig;
 
 /**
@@ -47,6 +48,10 @@ class StateInit implements State {
 		$this->config->setAppValue('migrate_to_ocis', 'ocis_host', $value);
 		$this->config->setAppValue('migrate_to_ocis', 'ocis_host_insecure', $insecure);
 		$migration->switchState(StateVerify::class);
+	}
+
+	public function skip(array $params, Migration $migration) {
+		throw new UnskippableException();
 	}
 
 	public function associatedCommand(): string {

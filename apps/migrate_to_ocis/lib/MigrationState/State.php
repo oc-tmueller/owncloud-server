@@ -2,6 +2,8 @@
 
 namespace OCA\MigrateToInfiniteScale\MigrationState;
 
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\MigrateException;
+
 /**
  * Represents a particular state of the migration.
  */
@@ -22,6 +24,16 @@ interface State {
 	 * @throws MigrateException
 	 */
 	public function migrate(array $params, Migration $migration);
+
+	/**
+	 * Skip the migration actions in this state and move to the next one.
+	 *
+	 * Some states might not be skippable. In that case, they must throw
+	 * an UnskippableException
+	 *
+	 * Note: this method might skip over several states
+	 */
+	public function skip(array $params, Migration $migration);
 
 	/**
 	 * Return the occ command associated to this state. Running that command
