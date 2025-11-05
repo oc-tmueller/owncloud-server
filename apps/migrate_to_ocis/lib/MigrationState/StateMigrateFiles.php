@@ -106,6 +106,12 @@ class StateMigrateFiles implements State {
 			$output = $params['output'];
 			'@phan-var OutputInterface $output'; // @phpstan-ignore-line
 			$output->writeln(" " . $user->getUserName() . "/" . $user->getEMailAddress());
+
+			if ($user->getLastLogin() === 0) {
+				$output->writeln("  User hasn't logged in. Skipping");
+				return;
+			}
+
 			if ($this->userHandler->hasBeenMigrated($params['adminUser'], $params['adminPassword'], $user)) {
 				if (!$this->cloneFilesForUser($user, $logFile, $params)) {
 					$ok = false;

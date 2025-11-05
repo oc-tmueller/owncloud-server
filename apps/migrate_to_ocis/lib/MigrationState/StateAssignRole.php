@@ -5,14 +5,15 @@ namespace OCA\MigrateToInfiniteScale\MigrationState;
 use OCA\MigrateToInfiniteScale\Helper\UserGroupFinder;
 use OCA\MigrateToInfiniteScale\Helper\UserHandler;
 use OCA\MigrateToInfiniteScale\MigrationState\Migration;
-use OCA\MigrateToInfiniteScale\MigrationState\StateAssignRole;
+use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateGroups;
 use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\MigrateException;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\UnskippableException;
 use OCA\MigrateToInfiniteScale\OCIS\ClientService;
 use OCA\MigrateToInfiniteScale\OCIS\ClientException;
 use OCP\IUserManager;
 use OCP\IUser;
 
-class StateMigrateUsers implements State {
+class StateAssignRole implements State {
 	/** @var UserGroupFinder */
 	private UserGroupFinder $userGroupFinder;
 	/** @var UserHandler */
@@ -35,6 +36,8 @@ class StateMigrateUsers implements State {
 	 * in oCIS)
 	 *
 	 * Required params:
+	 * - 'roleId' -> the oCIS' role id that we'll be assigned to each user
+	 * - 'appId' -> the oCIS' app id for the role
 	 * - 'adminUser' -> the oCIS' admin username
 	 * - 'adminPassword' -> the oCIS' admin password (an app token will be generated from it)
 	 * - 'output' -> a Symfony's OutputInterface to write messages
@@ -45,7 +48,7 @@ class StateMigrateUsers implements State {
 		try {
 			$this->doMigrate($params, $migration);
 		} catch (ClientException $ex) {
-			throw new MigrateException("Migrating users failed", 0, $ex);
+			throw new MigrateException("Assign role failed", 0, $ex);
 		}
 	}
 
@@ -56,11 +59,11 @@ class StateMigrateUsers implements State {
 		$params['client'] = $client;  // include the oCIS client so we don't need to create a new one each time
 
 		$this->userManager->callForUsers(function (IUser $user) use ($params) {
-			if ($this->userHandler->canBeMigrated($user)) {
-				$this->migrateUser($user, $params);
+			if ($this->userHandler->hasBeenMigrated($params['adminUser'], $params['adminPassword'], $user)) {
+				$this->assignRole($user, $params);
 			} else {
 				'@phan-var array{output:\Symfony\Component\Console\Output\OutputInterface} $params'; // @phpstan-ignore-line
-				$params['output']->writeln("{$user->getUserName()}/{$user->getEMailAddress()} - <error>SKIPPED</error>");
+				$params['output']->writeln("{$user->getUserName()}/{$user->getEMailAddress()} - <error>NOT MIGRATED</error>");
 			}
 		});
 
@@ -75,7 +78,9 @@ class StateMigrateUsers implements State {
 		}
 	}
 
-	private function migrateUser(IUser $user, array $params): void {
+	private function assignRole(IUser $user, array $params): void {
+		$roleId = $params['roleId'];
+		$appId = $params['appId'];
 		$adminUser = $params['adminUser'];
 		$token = $params['adminPassword'];
 		$output = $params['output'];
@@ -84,36 +89,26 @@ class StateMigrateUsers implements State {
 		$username = $user->getUserName();
 		$mail = $user->getEMailAddress();
 
-		try {
-			$userBody = $client->createUser($adminUser, $token, $user);
-			$output->writeln("{$username}/{$mail} - user created");
-
-			// we might need the oCIS' user id later, so cache it now
-			$this->userGroupFinder->addUserToCache($user, $userBody['id']);
-		} catch (ClientException $ex) {
-			if ($ex->getCode() === 409) {
-				// if there is a 409 in the createUser function, assume the
-				// user already exists in oCIS -> show a message and keep going.
-				$body = \json_decode($ex->getRawBody(), true);
-				$errorMessage = $body['error']['message'] ?? 'unknown error';
-				$output->writeln("{$username}/{$mail} - {$errorMessage}");
-			} else {
-				// rethrow the exception. This includes errors from the
-				// createUser and assignRole methods,
-				throw $ex;
-			}
+		if ($adminUser === $username) {
+			$output->writeln("{$username}/{$mail} - ignore role change for admin");
+			return;
 		}
+
+		$ocisUserId = $this->userGroupFinder->getUser($adminUser, $token, $user);
+		if ($ocisUserId === null) {
+			$output->writeln("{$username}/{$mail} - <error>NOT FOUND</error>");
+			return;
+		}
+
+		$client->assignRole($adminUser, $token, $ocisUserId, $roleId, $appId);
+		$output->writeln("{$username}/{$mail} - role assigned");
 	}
 
 	public function skip(array $params, Migration $migration) {
-		// "migrate" would overwrite the contents of the UserGroupFinder cache;
-		// in this case, we'll delete the file to prevent getting wrong data
-		// from other migrations that could be left in the cache file.
-		$this->userGroupFinder->cleanCache();
-		$migration->switchState(StateAssignRole::class);
+		throw new UnskippableException("Users must have a role");
 	}
 
 	public function associatedCommand(): string {
-		return 'migrate:to-ocis:migrate:users';
+		return 'migrate:to-ocis:assign-role';
 	}
 }

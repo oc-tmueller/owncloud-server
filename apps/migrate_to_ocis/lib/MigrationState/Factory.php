@@ -10,6 +10,7 @@ use OCA\MigrateToInfiniteScale\MigrationState\State;
 use OCA\MigrateToInfiniteScale\MigrationState\StateInit;
 use OCA\MigrateToInfiniteScale\MigrationState\StateVerify;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateUsers;
+use OCA\MigrateToInfiniteScale\MigrationState\StateAssignRole;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateGroups;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateFiles;
 use OCA\MigrateToInfiniteScale\MigrationState\StateFinish;
@@ -145,6 +146,9 @@ class Factory {
 			},
 			StateMigrateUsers::class => function () {
 				return new StateMigrateUsers($this->ocisClientService, $this->userHandler, $this->userGroupFinder, $this->userManager);
+			},
+			StateAssignRole::class => function () {
+				return new StateAssignRole($this->ocisClientService, $this->userHandler, $this->userGroupFinder, $this->userManager);
 			},
 			StateMigrateGroups::class => function () {
 				return new StateMigrateGroups($this->ocisClientService, $this->userGroupFinder, $this->groupManager);

@@ -90,6 +90,12 @@ class StateMigrateShares implements State {
 		$this->userManager->callForUsers(function (IUser $user) use ($client, $permMapper, $permissionMap, $params) {
 			$output = $params['output'];
 			$output->writeln(" " . $user->getUserName() . "/" . $user->getEMailAddress());
+
+			if ($user->getLastLogin() === 0) {
+				$output->writeln("  User hasn't logged in. Skipping");
+				return;
+			}
+
 			if ($this->userHandler->hasBeenMigrated($params['adminUser'], $params['adminPassword'], $user)) {
 				// include the userToken in the params because it will be used
 				// in the createSharesForUser and createLinkSharesForUser methods.
