@@ -40,11 +40,11 @@ class StateVerify implements State {
 		# ensure all users have an email address ...
 		$this->userManager->callForUsers(function (IUser $user) use (&$verified, &$email_addresses, $output) {
 			if (!$user->isEnabled()) {
-				$output->writeln("<fg=red;options=bold>Disabled user {$user->getUID()} - it will be skipped!</>");
+				$output->writeln("<fg=red;options=bold>Disabled user {$user->getUserName()} - it will be skipped!</>");
 				return;
 			}
 			if (!$this->hasValidEMail($user)) {
-				$output->writeln("<error>{$user->getUID()} has an invalid email</error>");
+				$output->writeln("<error>{$user->getUserName()} has an invalid email</error>");
 				$verified = false;
 			} else {
 				# save users by their email addresses ...
@@ -72,7 +72,7 @@ class StateVerify implements State {
 			foreach ($sup_email_addresses as $users) {
 				/** @var IUser[] $users */
 				foreach ($users as $u) {
-					$output->writeln(" - {$u->getEMailAddress()}: {$u->getUID()}");
+					$output->writeln(" - {$u->getEMailAddress()}: {$u->getUserName()}");
 				}
 			}
 			throw new MigrateException('Please make sure all users meet the requirements.');

@@ -99,10 +99,10 @@ class StateMigrateShares implements State {
 			if ($this->userHandler->hasBeenMigrated($params['adminUser'], $params['adminPassword'], $user)) {
 				// include the userToken in the params because it will be used
 				// in the createSharesForUser and createLinkSharesForUser methods.
-				if ($user->getUID() === $params['adminUser']) {
+				if ($user->getUserName() === $params['adminUser']) {
 					$params['userToken'] = $params['adminPassword'];  // already got token for the admin
 				} else {
-					$params['userToken'] = $client->tokenExchange($params['adminUser'], $params['adminPassword'], $user->getUID());
+					$params['userToken'] = $client->tokenExchange($params['adminUser'], $params['adminPassword'], $user->getUserName());
 				}
 
 				$this->createSharesForUser($this->shareManager, $user, $this->userGroupFinder, $permMapper, $permissionMap, $client, $params);
@@ -152,7 +152,7 @@ class StateMigrateShares implements State {
 		$adminPassword = $params['adminPassword'];
 		$user_token = $params['userToken'];
 
-		$personalDrives = $ocisClient->getPersonalDrives($user->getUID(), $user_token);
+		$personalDrives = $ocisClient->getPersonalDrives($user->getUserName(), $user_token);
 		if (\count($personalDrives) !== 1) {
 			// only 1 personal drive is expected, abort otherwise
 			return false;
@@ -162,7 +162,7 @@ class StateMigrateShares implements State {
 			$shareManager->getSharesBy($user->getUID(), \OCP\Share::SHARE_TYPE_USER, null, true, -1),
 			$shareManager->getSharesBy($user->getUID(), \OCP\Share::SHARE_TYPE_GROUP, null, true, -1)
 		);
-		$webdavClient = $ocisClient->getWebdavClientForDrive($user->getUID(), $user_token, $personalDrives[0]);
+		$webdavClient = $ocisClient->getWebdavClientForDrive($user->getUserName(), $user_token, $personalDrives[0]);
 
 		foreach ($shares as $share) {
 			$nodePath = $share->getNode()->getPath();
@@ -216,7 +216,7 @@ class StateMigrateShares implements State {
 					'expiration' => $shareExpiration,
 				];
 
-				$jsonResp = $ocisClient->shareInvite($user->getUID(), $user_token, $inviteData);
+				$jsonResp = $ocisClient->shareInvite($user->getUserName(), $user_token, $inviteData);
 			} catch (ClientException $ex) {
 				$jsonResp = \json_decode($ex->getRawBody(), true);
 			} catch (DavException $ex) {
@@ -296,14 +296,14 @@ class StateMigrateShares implements State {
 	private function createLinkSharesForUser(IManager $shareManager, IUser $user, Client $ocisClient, array $params) {
 		$user_token = $params['userToken'];
 
-		$personalDrives = $ocisClient->getPersonalDrives($user->getUID(), $user_token);
+		$personalDrives = $ocisClient->getPersonalDrives($user->getUserName(), $user_token);
 		if (\count($personalDrives) !== 1) {
 			// only 1 personal drive is expected, abort otherwise
 			return false;
 		}
 
 		$shares = $shareManager->getSharesBy($user->getUID(), \OCP\Share::SHARE_TYPE_LINK, null, true, -1);
-		$webdavClient = $ocisClient->getWebdavClientForDrive($user->getUID(), $user_token, $personalDrives[0]);
+		$webdavClient = $ocisClient->getWebdavClientForDrive($user->getUserName(), $user_token, $personalDrives[0]);
 
 		foreach ($shares as $share) {
 			$nodePath = $share->getNode()->getPath();
@@ -339,7 +339,7 @@ class StateMigrateShares implements State {
 					'password' => $share->getPassword(),
 				];
 
-				$jsonResp = $ocisClient->shareLink($user->getUID(), $user_token, $linkData);
+				$jsonResp = $ocisClient->shareLink($user->getUserName(), $user_token, $linkData);
 			} catch (ClientException $ex) {
 				$jsonResp = \json_decode($ex->getRawBody(), true);
 			} catch (DavException $ex) {
