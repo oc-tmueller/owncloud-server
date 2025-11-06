@@ -143,10 +143,10 @@ class StateMigrateFiles implements State {
 		}
 
 		$output = $params['output'];
-		$user_token = $params['client']->tokenExchange($params['adminUser'], $params['adminPassword'], $user->getUID());
+		$user_token = $params['client']->tokenExchange($params['adminUser'], $params['adminPassword'], $user->getUserName());
 		$password = $this->generateAppPassword($user);
 		try {
-			$ocis_connection = $this->buildRCloneConnectionStringForOCIS($params['ocisHost'], $user->getUID(), $user_token);
+			$ocis_connection = $this->buildRCloneConnectionStringForOCIS($params['ocisHost'], $user->getUserName(), $user_token);
 			$oc10_connection = $this->buildRCloneConnectionStringForOC($user, $password);
 			$output->writeln("ocis connect: $ocis_connection", OutputInterface::VERBOSITY_VERBOSE);
 			$output->writeln("oc10 connect: $oc10_connection", OutputInterface::VERBOSITY_VERBOSE);
@@ -171,7 +171,7 @@ class StateMigrateFiles implements State {
 				$logLevels = ['EMERGENCY', 'ALERT', 'CRITICAL', 'ERROR', 'WARNING', 'NOTICE'];
 				foreach ($logLevels as $logLevel) {
 					if (str_contains($line, $logLevel)) {
-						$conflictLogFile->putCSV([$logLevel, $user->getUID(), $user->getEMailAddress(), $line]);
+						$conflictLogFile->putCSV([$logLevel, $user->getUserName(), $user->getEMailAddress(), $line]);
 						# notice on config file access is not blocking the migration process
 						if (!(str_contains($line, 'NOTICE: Config file') && str_contains($line, 'not found - using defaults'))) {
 							$verified = false;

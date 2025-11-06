@@ -91,7 +91,7 @@ class Client {
 			'json' => [
 				'mail' => $user->getEMailAddress(),
 				'displayName' => $user->getDisplayName(),
-				'onPremisesSamAccountName' => $user->getUID(),
+				'onPremisesSamAccountName' => $user->getUserName(),
 			],
 			'verify' => !$this->insecure,
 		]);
