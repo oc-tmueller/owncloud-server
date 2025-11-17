@@ -64,7 +64,7 @@ class StateMigrateUsers implements State {
 			}
 		});
 
-		$migration->switchState(StateMigrateGroups::class);
+		$migration->switchState(StateAssignRole::class);
 
 		// saving the userGroupFinder cache can be done after the state transition
 		try {
