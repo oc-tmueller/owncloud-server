@@ -11,12 +11,12 @@
 	</description>
 	<licence>gplv2</licence>
 	<author>Tom Needham</author>
-	<version>1.0.2</version>
+	<version>1.1.0</version>
 	<category>productivity</category>
 	<summary>Integration of Draw.io editor into ownCloud Files app for creating and modifying diagrams</summary>
 	<screenshot>https://raw.githubusercontent.com/owncloud/drawio/master/screenshot.png</screenshot>
 	<dependencies>
-		<owncloud min-version="10.5" max-version="10" />
+		<owncloud min-version="10.15" max-version="11" />
 	</dependencies>
 	<bugs>https://github.com/owncloud/drawio/issues</bugs>
 	<repository type="git">https://github.com/owncloud/drawio.git</repository>
