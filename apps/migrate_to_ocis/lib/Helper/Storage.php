@@ -2,7 +2,7 @@
 
 namespace OCA\MigrateToInfiniteScale\Helper;
 
-use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
 use OCP\IDBConnection;
 
@@ -36,19 +36,17 @@ class Storage {
 			// only storages of users (exclude external storage)
 			// we cannot just check for "files" path in filecache as external storages
 			// can have such folder mounted
-			if ($this->connection->getDatabasePlatform() instanceof MySqlPlatform) {
+			if ($this->connection->getDatabasePlatform() instanceof MySQLPlatform) {
 				$qb->andWhere("(`st`.`id` LIKE CONCAT('%::', `mt`.`user_id`) or `st`.`id` LIKE CONCAT('object::user:', `mt`.`user_id`))");
 			} else {
 				$qb->andWhere("(`st`.`id` LIKE '%::' || `mt`.`user_id` or `st`.`id` LIKE 'object::user:' || `mt`.`user_id`)");
 			}
 
 			$statement = $qb->execute();
-			/* @phan-suppress-next-line PhanDeprecatedFunction */
-			return (int)$statement->fetch()['totalSize'];
+			return (int)$statement->fetchAssociative()['totalSize'];
 		} finally {
 			if ($statement) {
-				/* @phan-suppress-next-line PhanDeprecatedFunction */
-				$statement->closeCursor();
+				$statement->free();
 			}
 		}
 	}
