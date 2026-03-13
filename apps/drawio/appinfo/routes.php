@@ -25,7 +25,9 @@ $app = new \OCA\Drawio\Application(
 	\OC::$server->getUserSession()
 );
 $app->registerRoutes(
-	$this, [
+	/** @phpstan-ignore-next-line */
+	$this, /* @phan-suppress-current-line PhanUndeclaredThis */
+	[
 		'routes' => [
 			[
 				'name' => 'page#editor',

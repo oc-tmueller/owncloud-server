@@ -23,22 +23,22 @@
 namespace OCA\Drawio;
 
 use OCP\AppFramework\App;
-use OCP\IRequest;
 use OCP\IUserSession;
 use OCP\Util;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class Application extends App {
 
-	const APPID = 'drawio';
+	public const APPID = 'drawio';
 
 	public function __construct(
 		EventDispatcherInterface $dispatcher,
-		IUserSession $userSession) {
+		IUserSession $userSession
+	) {
 		parent::__construct(self::APPID);
 
 		if ($userSession->isLoggedIn()) {
-			$dispatcher->addListener('OCA\Files::loadAdditionalScripts', function() {
+			$dispatcher->addListener('OCA\Files::loadAdditionalScripts', function () {
 				Util::addScript(self::APPID, "files");
 				Util::addStyle(self::APPID, "files");
 

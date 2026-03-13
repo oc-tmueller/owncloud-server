@@ -34,8 +34,8 @@ use OCP\IUserSession;
 
 class PageController extends Controller {
 
-	const SERVERURL = 'https://embed.diagrams.net';
-	const THEME = 'minimal';
+	public const SERVERURL = 'https://embed.diagrams.net';
+	public const THEME = 'minimal';
 
 	/** @var IRootFolder  */
 	protected $rootFolder;
@@ -49,7 +49,8 @@ class PageController extends Controller {
 		IRequest $request,
 		IRootFolder $rootFolder,
 		IL10N $l,
-		IUserSession $userSession) {
+		IUserSession $userSession
+	) {
 		parent::__construct($appName, $request);
 		$this->l = $l;
 		$this->rootFolder = $rootFolder;
@@ -65,7 +66,8 @@ class PageController extends Controller {
 	public function editor($fileid) {
 		$response = new TemplateResponse(
 			Application::APPID,
-			'editor');
+			'editor'
+		);
 		$csp = new ContentSecurityPolicy();
 		$csp->allowInlineScript(true);
 		$csp->addAllowedScriptDomain(self::SERVERURL);
@@ -87,7 +89,8 @@ class PageController extends Controller {
 			return new TemplateResponse(
 				Application::APPID,
 				'error',
-				['message' => $this->l->t('There was an error loading the diagram file. Check permissions and try again.')]);
+				['message' => $this->l->t('There was an error loading the diagram file. Check permissions and try again.')]
+			);
 		}
 		$canEdit = $file->isUpdateable();
 		$params = [
