@@ -5,8 +5,8 @@
     <summary>Migrate ownCloud 10 to ownCloud Infinite Scale.</summary>
     <description>Migrate ownCloud 10 to ownCloud Infinite Scale.</description>
     <licence>GPLv2</licence>
-    <author>Thomas Müller</author>
-    <version>0.3.0</version>
+    <author>ownCloud GmbH - a Kiteworks Company</author>
+    <version>1.0.0</version>
     <namespace>MigrateToInfiniteScale</namespace>
     <category>integration</category>
     <dependencies>
