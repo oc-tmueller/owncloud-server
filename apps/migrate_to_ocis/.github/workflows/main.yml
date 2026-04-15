@@ -45,6 +45,7 @@ jobs:
     with:
       app-name: ${{ needs.get-vars.outputs.app-name }}
       php-versions: ${{ needs.get-vars.outputs.php-versions }}
+      core-ref-php74: v10.16.1
 
   php-unit:
     name: PHP Unit
@@ -54,15 +55,11 @@ jobs:
     with:
       app-name: ${{ needs.get-vars.outputs.app-name }}
       php-versions: ${{ needs.get-vars.outputs.php-versions }}
+      core-ref-php74: v10.16.1
 
   build:
     name: Build
     needs:
       - php-code-style
       - php-unit
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Build
-        run: make dist
+    uses: owncloud/reusable-workflows/.github/workflows/build.yml@main
