@@ -12,6 +12,7 @@
     <dependencies>
         <owncloud min-version="10.15" max-version="11"/>
     </dependencies>
+    <screenshot>https://raw.githubusercontent.com/owncloud/screenshots/master/migrate_to_ocis/migrate_to_ocis.png</screenshot>
     <documentation>
         <admin>https://doc.owncloud.com/server/latest/admin_manual/maintenance/migrating_to_ocis.html</admin>
     </documentation>
