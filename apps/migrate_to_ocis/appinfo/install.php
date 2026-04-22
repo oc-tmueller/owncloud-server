@@ -1,4 +1,5 @@
 <?php
+// SPDX-License-Identifier: Apache-2.0
 
 $rclonePath = __DIR__ . '/../bin/rclone_linux_amd64';
 

@@ -1,4 +1,5 @@
 <?php
+// SPDX-License-Identifier: Apache-2.0
 namespace OCA\MigrateToInfiniteScale\OCIS;
 
 use OCP\Http\Client\IResponse;

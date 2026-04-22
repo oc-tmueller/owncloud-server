@@ -1,4 +1,5 @@
 <?php
+// SPDX-License-Identifier: Apache-2.0
 
 $config = new OC\CodingStandard\Config();
 

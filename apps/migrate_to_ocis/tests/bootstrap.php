@@ -1,4 +1,5 @@
 <?php
+// SPDX-License-Identifier: Apache-2.0
 /**
  * @author Thomas Müller <thomas.mueller@tmit.eu>
  *

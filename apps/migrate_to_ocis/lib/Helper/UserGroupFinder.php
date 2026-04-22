@@ -1,4 +1,5 @@
 <?php
+// SPDX-License-Identifier: Apache-2.0
 namespace OCA\MigrateToInfiniteScale\Helper;
 
 use OCP\IUser;
