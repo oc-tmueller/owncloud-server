@@ -578,6 +578,8 @@ class Client {
 	 */
 	public function getOcisFileInfo(\Sabre\DAV\Client $davClient, string $path): array {
 		$targetPath = "ownCloud/{$path}";
+		// encode the path except for the slashes
+		$targetPath = \str_replace('%2F', '/', \rawurlencode($targetPath));
 		try {
 			$data = $davClient->propFind($targetPath, ['{http://owncloud.org/ns}fileid']);
 			return $data;
