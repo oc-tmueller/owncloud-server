@@ -204,7 +204,6 @@ class UserGroupFinder {
 			throw new \UnexpectedValueException("Cannot get lock on file $targetFile");
 		}
 
-		\ftruncate($filePointer, 0);
 		$content = \fread($filePointer, \filesize($targetFile));  // need to read the whole file
 		\flock($filePointer, LOCK_UN);
 		\fclose($filePointer);
