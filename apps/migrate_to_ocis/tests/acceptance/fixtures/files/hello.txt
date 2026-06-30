@@ -1,0 +1,1 @@
+Hello from ownCloud 10. This file should survive the migration to oCIS.

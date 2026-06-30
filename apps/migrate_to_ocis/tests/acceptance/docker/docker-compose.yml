@@ -1,0 +1,90 @@
+# Acceptance test topology: ownCloud 10 (+ MariaDB + Redis) and oCIS on one
+# network. OC10 reaches oCIS at https://ocis:9200 (self-signed; handled by the
+# migration's `init -k` insecure flag). Image tags are overridable via .env.
+services:
+  db:
+    image: mariadb:${MARIADB_TAG:-10.11}
+    command: ["--max-allowed-packet=128M", "--innodb-log-file-size=64M"]
+    environment:
+      MYSQL_ROOT_PASSWORD: owncloud
+      MYSQL_USER: owncloud
+      MYSQL_PASSWORD: owncloud
+      MYSQL_DATABASE: owncloud
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+    networks: [mignet]
+
+  redis:
+    image: redis:${REDIS_TAG:-6}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+    networks: [mignet]
+
+  oc10:
+    image: owncloud/server:${OC10_TAG:-10.15}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      OWNCLOUD_DOMAIN: oc10:8080
+      OWNCLOUD_TRUSTED_DOMAINS: oc10,localhost,127.0.0.1
+      OWNCLOUD_DB_TYPE: mysql
+      OWNCLOUD_DB_NAME: owncloud
+      OWNCLOUD_DB_USERNAME: owncloud
+      OWNCLOUD_DB_PASSWORD: owncloud
+      OWNCLOUD_DB_HOST: db
+      OWNCLOUD_ADMIN_USERNAME: admin
+      OWNCLOUD_ADMIN_PASSWORD: admin
+      OWNCLOUD_MYSQL_UTF8MB4: "true"
+      OWNCLOUD_REDIS_ENABLED: "true"
+      OWNCLOUD_REDIS_HOST: redis
+    volumes:
+      # The app under test, mounted read-only at a neutral path (NOT under
+      # /var/www/owncloud, whose tree the entrypoint recursively chowns and
+      # would fail on a read-only mount). run.sh copies it into the apps dir
+      # after startup. vendor/ must be present on the host (run.sh installs it).
+      - ../../..:/mnt/migrate_to_ocis:ro
+    healthcheck:
+      test: ["CMD", "/usr/bin/healthcheck"]
+      interval: 10s
+      timeout: 10s
+      retries: 60
+    networks: [mignet]
+
+  ocis:
+    image: owncloud/ocis:${OCIS_TAG:-7.1.0}
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["ocis init || true; exec ocis server"]
+    environment:
+      OCIS_URL: https://ocis:9200
+      OCIS_INSECURE: "true"
+      OCIS_LOG_LEVEL: error
+      PROXY_TLS: "true"
+      IDM_ADMIN_PASSWORD: admin
+      # Migration prerequisites (see README "oCIS requirements").
+      OCIS_ADD_RUN_SERVICES: "auth-app"
+      PROXY_ENABLE_APP_AUTH: "true"
+      AUTH_APP_ENABLE_IMPERSONATION: "true"
+      # Allow admin basic-auth (password) so the test harness can read the
+      # Graph API directly for assertions/healthcheck. Test-only convenience;
+      # the migration itself uses app-auth tokens regardless.
+      PROXY_ENABLE_BASIC_AUTH: "true"
+      # Allow passwordless public links to migrate.
+      OCIS_SHARING_PUBLIC_SHARE_MUST_HAVE_PASSWORD: "false"
+    healthcheck:
+      test: ["CMD", "/bin/sh", "-c", "curl -ksf -u admin:admin https://localhost:9200/graph/v1.0/users >/dev/null"]
+      interval: 10s
+      timeout: 10s
+      retries: 60
+    networks: [mignet]
+
+networks:
+  mignet: {}

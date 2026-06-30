@@ -5,6 +5,8 @@ vendor-bin/**/composer.lock
 /vendor/
 /build/
 /tests/output/
+/tests/acceptance/artifacts/
+/tests/acceptance/.env
 .phpunit.result.cache
 tests/unit/PopTest.php
 l10n/.transifexrc

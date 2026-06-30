@@ -1,0 +1,7 @@
+# uid,password,email,enabled,login
+# enabled=no -> disabled user (must NOT migrate; excluded from groups)
+# login=no   -> never-logged-in (user migrates, but files/shares are skipped)
+alice,alice123,alice@example.org,yes,yes
+bob,bob123,bob@example.org,yes,yes
+carol,carol123,carol@example.org,yes,no
+dave,dave123,dave@example.org,no,yes

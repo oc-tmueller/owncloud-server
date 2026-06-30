@@ -131,6 +131,15 @@ test-php-phpstan: vendor-bin/phpstan/vendor
 test-js: $(nodejs_deps)
 	$(KARMA) start tests/js/karma.config.js --single-run
 
+.PHONY: test-acceptance
+test-acceptance: ## Run end-to-end acceptance tests (docker: OC10 + oCIS)
+	bash tests/acceptance/run.sh
+
+.PHONY: test-acceptance-reset-ocis
+test-acceptance-reset-ocis: ## Recycle only oCIS so the migration can be re-run
+	cd tests/acceptance && docker compose -f docker/docker-compose.yml rm -sfv ocis \
+		&& docker compose -f docker/docker-compose.yml up -d --wait ocis
+
 ##
 ## Dependency management
 ##----------------------
