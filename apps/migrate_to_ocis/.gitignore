@@ -18,9 +18,6 @@ l10n/l10n.pl
 # SonarCloud scanner
 .scannerwork
 
-# Generated from .drone.star
-.drone.yml
-
 .idea/
 
 composer.phar
