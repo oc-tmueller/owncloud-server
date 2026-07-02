@@ -72,13 +72,13 @@ class Client {
 	//}
 
 	/**
-	 * Create a new user in oCIS using the OC10 user information.
+	 * Create a new user in oCIS using the ownCloud Classic user information.
 	 * If the user already exists, a ClientException will be thrown with
 	 * a 409 error code.
 	 *
 	 * @param string $admin_user
 	 * @param string $token app-auth token or password for the admin user
-	 * @param IUser $user the OC10 user we want to create in oCIS
+	 * @param IUser $user the ownCloud Classic user we want to create in oCIS
 	 * @return array the created user information returned by the request
 	 * @throws ClientException in case of failure.
 	 */
@@ -109,13 +109,13 @@ class Client {
 	}
 
 	/**
-	 * Search the oCIS users based on the OC10 user's username.
+	 * Search the oCIS users based on the ownCloud Classic user's username.
 	 * The whole json response (which might include multiple matches) will
 	 * be returned on success.
 	 *
 	 * @param string $admin_user
 	 * @param string $token
-	 * @param IUser $user the OC10 user to be searched in oCIS
+	 * @param IUser $user the ownCloud Classic user to be searched in oCIS
 	 * @return array the list of users found, as returned by the request
 	 * @throws ClientException in case of failure
 	 */
@@ -153,7 +153,7 @@ class Client {
 	 *
 	 * @param string $admin_user
 	 * @param string $token
-	 * @param IUser $user the OC10 user to check in oCIS
+	 * @param IUser $user the ownCloud Classic user to check in oCIS
 	 * @return array|null the oCIS user information found or null if no user
 	 * is found
 	 * @throws ClientException in case of failure
@@ -169,13 +169,13 @@ class Client {
 	}
 
 	/**
-	 * Create a group using the same display name as the OC10 group.
+	 * Create a group using the same display name as the ownCloud Classic group.
 	 * The oCIS group information will be returned on success; null if the
 	 * group already exists.
 	 *
 	 * @param string $admin_user
 	 * @param string $token
-	 * @param IGroup $group the OC10 group we want to create in oCIS
+	 * @param IGroup $group the ownCloud Classic group we want to create in oCIS
 	 * @return array the created group information returned by the request
 	 * @throws ClientException in case of failure.
 	 */
@@ -204,13 +204,13 @@ class Client {
 	}
 
 	/**
-	 * Search the oCIS groups based on the OC10 group's display name.
+	 * Search the oCIS groups based on the ownCloud Classic group's display name.
 	 * The whole json response (which might include multiple matches) will
 	 * be returned on success.
 	 *
 	 * @param string $admin_user
 	 * @param string $token
-	 * @param IGroup $group the OC10 group to be searched in oCIS
+	 * @param IGroup $group the ownCloud Classic group to be searched in oCIS
 	 * @return array the list of groups found, as returned by the request
 	 * @throws ClientException in case of failure
 	 */
@@ -247,7 +247,7 @@ class Client {
 	 *
 	 * @param string $admin_user
 	 * @param string $token
-	 * @param IGroup $group the OC10 group to check in oCIS
+	 * @param IGroup $group the ownCloud Classic group to check in oCIS
 	 * @return array|null the oCIS group information found or null if no group
 	 * is found
 	 * @throws ClientException in case of failure
@@ -568,11 +568,11 @@ class Client {
 
 	/**
 	 * Get the oCIS file info for the target path.
-	 * The path refers to a OC10 path that must have been migrated
+	 * The path refers to an ownCloud Classic path that must have been migrated
 	 *
 	 * @param \Sabre\DAV\Client $davClient a SabreDav client as returned by
 	 * the "getWebdavClientForDrive" method
-	 * @param string $path the OC10 path of the file to be checked in oCIS
+	 * @param string $path the ownCloud Classic path of the file to be checked in oCIS
 	 * @return array the propfind info
 	 * @throws DavException
 	 */

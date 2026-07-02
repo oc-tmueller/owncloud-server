@@ -26,13 +26,7 @@
       "bin-links": false
     }
   },
-  "license": "AGPL",
-  "authors": [
-    {
-      "name": "Thomas Müller",
-      "email": "thomas.mueller@tmit.eu"
-    }
-  ],
+  "license": "Apache-2.0",
   "config": {
     "optimize-autoloader": true,
     "classmap-authoritative": false,

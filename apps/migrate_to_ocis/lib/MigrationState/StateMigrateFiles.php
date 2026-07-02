@@ -63,7 +63,7 @@ class StateMigrateFiles implements State {
 	}
 
 	/**
-	 * Migrate the files of all users from OC10 to oCIS using the rclone binary
+	 * Migrate the files of all users from ownCloud Classic to oCIS using the rclone binary
 	 *
 	 * Required params:
 	 * - 'adminUser' -> the oCIS' admin username

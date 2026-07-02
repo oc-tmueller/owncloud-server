@@ -13,7 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Check if the local OC10 installation can be migrated.
+ * Check if the local ownCloud Classic installation can be migrated.
  */
 class Verify extends CommandMigration {
 	public function __construct(Migration $migration) {

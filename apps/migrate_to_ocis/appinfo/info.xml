@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <info>
     <id>migrate_to_ocis</id>
-    <name>Migrate ownCloud 10 to oCIS</name>
-    <summary>Migrate ownCloud 10 to ownCloud Infinite Scale.</summary>
-    <description>Migrate ownCloud 10 to ownCloud Infinite Scale.</description>
+    <name>Migrate ownCloud Classic to oCIS</name>
+    <summary>Migrate ownCloud Classic to ownCloud Infinite Scale.</summary>
+    <description>Migrate ownCloud Classic to ownCloud Infinite Scale.</description>
     <licence>APL2</licence>
     <author>ownCloud GmbH - a Kiteworks Company</author>
     <version>1.0.0</version>

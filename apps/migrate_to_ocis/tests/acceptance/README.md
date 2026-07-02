@@ -1,7 +1,7 @@
 # Acceptance test suite
 
-End-to-end black-box test of the OC10 → oCIS migration. It spins up real
-ownCloud 10 (+ MariaDB + Redis) and oCIS containers, seeds OC10 with users,
+End-to-end black-box test of the ownCloud Classic → oCIS migration. It spins up real
+ownCloud Classic (+ MariaDB + Redis) and oCIS containers, seeds ownCloud Classic with users,
 groups, files and every share type, runs the actual migration (the 7 `occ`
 commands), and then asserts — independently, against the oCIS Graph API and
 WebDAV — that everything migrated correctly, including the negative cases.
@@ -32,9 +32,9 @@ local green run and a green CI run exercise identical steps.
 ## Layout
 
 - `run.sh` — single entrypoint (used by `make` and CI).
-- `docker/docker-compose.yml` — the OC10 + oCIS topology.
+- `docker/docker-compose.yml` — the ownCloud Classic + oCIS topology.
 - `lib/` — shared bash helpers and readiness polls.
-- `seed/` + `fixtures/` — idempotent OC10 data seeding.
+- `seed/` + `fixtures/` — idempotent ownCloud Classic data seeding.
 - `migrate/migrate.sh` — drives the 7 `occ` migration commands.
 - `assert/` — independent oCIS-side verification (bash + curl + jq).
 - `artifacts/` — per-step logs (gitignored).
@@ -50,7 +50,7 @@ cd tests/acceptance && bash assert/assert.sh    # iterate on assertions only
 ```
 
 The migration is forward-only per oCIS instance. To re-run the migration
-against a clean oCIS without recreating OC10 + seed data:
+against a clean oCIS without recreating ownCloud Classic + seed data:
 
 ```bash
 make test-acceptance-reset-ocis                # recycle only the oCIS container

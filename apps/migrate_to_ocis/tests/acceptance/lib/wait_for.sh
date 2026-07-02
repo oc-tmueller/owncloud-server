@@ -4,9 +4,9 @@
 #
 # Source common.sh before this file.
 
-# OC10: occ runs and the instance reports installed.
+# ownCloud Classic: occ runs and the instance reports installed.
 wait_oc10() {
-  log "waiting for OC10 to be installed..."
+  log "waiting for ownCloud Classic to be installed..."
   retry 60 5 _oc10_installed
 }
 _oc10_installed() {

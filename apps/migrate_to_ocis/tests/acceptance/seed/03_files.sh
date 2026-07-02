@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Upload files/folders to OC10 via WebDAV for the active+logged-in users.
+# Upload files/folders to ownCloud Classic via WebDAV for the active+logged-in users.
 # Writes artifacts/files_manifest.txt (user<TAB>path<TAB>bytes) so file
 # assertions verify against ground truth instead of hardcoded sizes.
 #

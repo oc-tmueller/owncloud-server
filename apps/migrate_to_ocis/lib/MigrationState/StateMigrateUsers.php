@@ -31,7 +31,7 @@ class StateMigrateUsers implements State {
 	}
 
 	/**
-	 * Migrate users from OC10 to oCIS. All the migrated users will have
+	 * Migrate users from ownCloud Classic to oCIS. All the migrated users will have
 	 * the same predefined role (previously chosen from what's available
 	 * in oCIS)
 	 *

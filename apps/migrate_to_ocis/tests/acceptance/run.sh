@@ -58,7 +58,7 @@ if [ "$RUN_UP" = "1" ]; then
   # Copy the app from the read-only mount into the apps dir (avoids the
   # entrypoint's recursive chown failing on a read-only mount), fix ownership,
   # then enable it.
-  log "installing migrate_to_ocis app into OC10 apps dir"
+  log "installing migrate_to_ocis app into ownCloud Classic apps dir"
   docker compose exec -T -u root oc10 bash -c '
     set -e
     rm -rf /var/www/owncloud/apps/migrate_to_ocis
@@ -67,12 +67,12 @@ if [ "$RUN_UP" = "1" ]; then
     chmod +x /var/www/owncloud/apps/migrate_to_ocis/bin/rclone_linux_amd64
   '
 
-  log "enabling migrate_to_ocis app in OC10"
+  log "enabling migrate_to_ocis app in ownCloud Classic"
   occ app:enable migrate_to_ocis
 fi
 
 if [ "$RUN_SEED" = "1" ]; then
-  log "seeding OC10 with users, groups, files and shares"
+  log "seeding ownCloud Classic with users, groups, files and shares"
   bash seed/seed.sh 2>&1 | tee "$ARTIFACTS/seed.log"
 fi
 

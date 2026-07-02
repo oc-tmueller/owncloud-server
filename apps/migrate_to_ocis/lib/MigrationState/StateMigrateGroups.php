@@ -27,7 +27,7 @@ class StateMigrateGroups implements State {
 	}
 
 	/**
-	 * Migrate the OC10 groups to oCIS. The groups will have the same members
+	 * Migrate the ownCloud Classic groups to oCIS. The groups will have the same members
 	 * assuming the users have been migrated correctly.
 	 * Note that the userGroupFinder cache will be saved with the group
 	 * information.

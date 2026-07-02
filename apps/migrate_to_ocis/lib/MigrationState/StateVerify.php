@@ -22,7 +22,7 @@ class StateVerify implements State {
 	}
 
 	/**
-	 * Verify the OC10 is ready to be migrated. The main requisite is that
+	 * Verify the ownCloud Classic instance is ready to be migrated. The main requisite is that
 	 * all user must have an unique email
 	 *
 	 * Required params:

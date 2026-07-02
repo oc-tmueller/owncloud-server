@@ -24,7 +24,7 @@ step() {                       # step <logfile> <stdin-or-empty> <occ args...>
 
 # 1. init (insecure: self-signed oCIS cert). -f resets so re-runs work.
 step 01-init.log    "" migrate:to-ocis:init -k -f "$OCIS_HOST"
-# 2. verify OC10 readiness (emails unique/valid).
+# 2. verify ownCloud Classic readiness (emails unique/valid).
 step 02-verify.log  "" migrate:to-ocis:verify
 # 3. migrate users (prompts: password).
 step 03-users.log   "$OCIS_PW\n" migrate:to-ocis:migrate:users "$OCIS_ADMIN"

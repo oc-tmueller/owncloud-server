@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Create OC10 users from fixtures/users.csv (idempotent).
+# Create ownCloud Classic users from fixtures/users.csv (idempotent).
 #  - active users get logged in once (authenticated PROPFIND) to set last_login,
 #    otherwise the migration would skip their files/shares.
 #  - the disabled user (login=yes) is logged in WHILE STILL ENABLED, then
@@ -13,7 +13,7 @@ source lib/common.sh
 
 user_exists() { occ user:list 2>/dev/null | grep -qE "^[[:space:]]*-[[:space:]]*$1:"; }
 
-# The OC10 admin is created by the image without an email; `verify` requires
+# The ownCloud Classic admin is created by the image without an email; `verify` requires
 # every enabled user to have a valid, unique email. Set one before seeding the
 # fixture users.
 log "setting admin email"

@@ -21,7 +21,7 @@ class UserHandler {
 	 * has an email address and musn't be disabled.
 	 * LDAP users won't be migrated
 	 *
-	 * @param IUser $user the OC10 to check
+	 * @param IUser $user the ownCloud Classic user to check
 	 * @return bool
 	 */
 	public function canBeMigrated(IUser $user): bool {
@@ -38,7 +38,7 @@ class UserHandler {
 	}
 
 	/**
-	 * Check if the target OC10 user has been migrated to oCIS. This method
+	 * Check if the target ownCloud Classic user has been migrated to oCIS. This method
 	 * will use local data (via UserGroupFinder cache) if possible, and
 	 * perform a request to oCIS otherwise.
 	 *

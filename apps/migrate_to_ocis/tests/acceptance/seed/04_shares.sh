@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Create OC10 shares from fixtures/shares.csv via the OCS Share API (idempotent).
+# Create ownCloud Classic shares from fixtures/shares.csv via the OCS Share API (idempotent).
 # Covers: user share read-only, user share read-write, group share, public link
 # (passwordless), public link (password-protected), upload-only file-drop link,
 # and a share with an expiration date.

@@ -12,7 +12,7 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 : "${OCIS_ADMIN:=admin}"
 : "${OCIS_PW:=admin}"
-: "${OCIS_HOST:=ocis:9200}"          # how OC10 (and the migration) reach oCIS
+: "${OCIS_HOST:=ocis:9200}"          # how ownCloud Classic (and the migration) reach oCIS
 : "${OC10_ADMIN:=admin}"
 : "${OC10_PW:=admin}"
 
@@ -70,7 +70,7 @@ retry() {
 # ---------------------------------------------------------------------------
 
 # oc10_curl <user> <password> <curl-args...>
-# Talks to the OC10 instance over the docker network.
+# Talks to the ownCloud Classic instance over the docker network.
 oc10_curl() {
   local user="$1" pw="$2"; shift 2
   in_oc10 curl -sS -u "$user:$pw" "$@"

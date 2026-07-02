@@ -1,4 +1,4 @@
 # group,members(semicolon-separated)
-# dave is disabled: he is added in OC10 but must be ABSENT from the oCIS group.
+# dave is disabled: he is added in ownCloud Classic but must be ABSENT from the oCIS group.
 engineering,alice;bob;dave
 marketing,bob;carol

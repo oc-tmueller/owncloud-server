@@ -2117,9 +2117,9 @@ def skipIfUnchanged(ctx, type):
 
     if type == "acceptance-tests":
         # if any of these files are touched then run all acceptance tests
-        # note: some oC10 apps have various directories like handlers, rules, etc.
+        # note: some ownCloud Classic apps have various directories like handlers, rules, etc.
         #       so those are all listed here so that this starlark code can be
-        #       the same for every oC10 app.
+        #       the same for every ownCloud Classic app.
         acceptance_files = [
             "^tests/acceptance/.*",
             "^tests/drone/.*",
@@ -2150,9 +2150,9 @@ def skipIfUnchanged(ctx, type):
 
     if type == "unit-tests":
         # if any of these files are touched then run all unit tests
-        # note: some oC10 apps have various directories like handlers, rules, etc.
+        # note: some ownCloud Classic apps have various directories like handlers, rules, etc.
         #       so those are all listed here so that this starlark code can be
-        #       the same for every oC10 app.
+        #       the same for every ownCloud Classic app.
         unit_files = [
             "^tests/integration/.*",
             "^tests/js/.*",

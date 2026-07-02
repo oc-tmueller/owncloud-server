@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Create OC10 groups and memberships from fixtures/groups.csv (idempotent).
-# Disabled members are added in OC10 but must be excluded from the oCIS group.
+# Create ownCloud Classic groups and memberships from fixtures/groups.csv (idempotent).
+# Disabled members are added in ownCloud Classic but must be excluded from the oCIS group.
 set -euo pipefail
 ACCEPTANCE_DIR="${ACCEPTANCE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 cd "$ACCEPTANCE_DIR"

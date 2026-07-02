@@ -1,5 +1,5 @@
-# Acceptance test topology: ownCloud 10 (+ MariaDB + Redis) and oCIS on one
-# network. OC10 reaches oCIS at https://ocis:9200 (self-signed; handled by the
+# Acceptance test topology: ownCloud Classic (+ MariaDB + Redis) and oCIS on one
+# network. ownCloud Classic reaches oCIS at https://ocis:9200 (self-signed; handled by the
 # migration's `init -k` insecure flag). Image tags are overridable via .env.
 services:
   db:

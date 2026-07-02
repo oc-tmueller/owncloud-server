@@ -132,7 +132,7 @@ test-js: $(nodejs_deps)
 	$(KARMA) start tests/js/karma.config.js --single-run
 
 .PHONY: test-acceptance
-test-acceptance: ## Run end-to-end acceptance tests (docker: OC10 + oCIS)
+test-acceptance: ## Run end-to-end acceptance tests (docker: ownCloud Classic + oCIS)
 	bash tests/acceptance/run.sh
 
 .PHONY: test-acceptance-reset-ocis
