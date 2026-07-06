@@ -14,6 +14,7 @@ use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateUsers;
 use OCA\MigrateToInfiniteScale\MigrationState\StateAssignRole;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateGroups;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateFiles;
+use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateShares;
 use OCA\MigrateToInfiniteScale\MigrationState\StateFinish;
 use OCA\MigrateToInfiniteScale\OCIS\ClientService;
 use OCP\IConfig;

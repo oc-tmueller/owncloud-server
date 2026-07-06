@@ -100,12 +100,12 @@ package:
 .PHONY: test-php-unit
 test-php-unit: ## Run php unit tests
 test-php-unit: vendor/bin/phpunit
-	$(PHPUNIT) --configuration ./phpunit.xml --testsuite migrate_to_miteworks-unit
+	$(PHPUNIT) --configuration ./phpunit.xml --testsuite migrate_to_ocis-unit
 
 .PHONY: test-php-unit-dbg
 test-php-unit-dbg: ## Run php unit tests using phpdbg
 test-php-unit-dbg: vendor/bin/phpunit
-	$(PHPUNITDBG) --configuration ./phpunit.xml --testsuite migrate_to_miteworks-unit
+	$(PHPUNITDBG) --configuration ./phpunit.xml --testsuite migrate_to_ocis-unit
 
 .PHONY: test-php-style
 test-php-style: ## Run php-cs-fixer and check owncloud code-style

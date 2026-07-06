@@ -198,6 +198,9 @@ class UserGroupFinder {
 		}
 
 		$targetFile = $tmpFolder . '/' . self::CACHE_FILENAME;
+		if (!\file_exists($targetFile)) {
+			throw new \UnexpectedValueException("File does not exists $targetFile");
+		}
 
 		$filePointer = \fopen($targetFile, 'r');
 		if (!\flock($filePointer, LOCK_EX)) {

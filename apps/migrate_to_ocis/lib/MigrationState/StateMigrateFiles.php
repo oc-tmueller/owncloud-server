@@ -8,6 +8,7 @@ use OCA\MigrateToInfiniteScale\ConflictLog\LogFile;
 use OCA\MigrateToInfiniteScale\ConflictLog\LogService;
 use OCA\MigrateToInfiniteScale\Helper\ProcessOutputLineProcessor;
 use OCA\MigrateToInfiniteScale\Helper\UserHandler;
+use OCA\MigrateToInfiniteScale\MigrationState\Migration;
 use OCA\MigrateToInfiniteScale\MigrationState\StateMigrateShares;
 use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\MigrateException;
 use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\UnskippableException;
