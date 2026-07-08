@@ -29,9 +29,14 @@ step 02-verify.log  "" migrate:to-ocis:verify
 # 3. migrate users (prompts: password).
 step 03-users.log   "$OCIS_PW\n" migrate:to-ocis:migrate:users "$OCIS_ADMIN"
 # 4. assign role (prompts: password, optional app choice, role choice).
-#    '0' selects the first/default choice; the extra line is harmless if only
-#    the role is asked. Result is asserted independently in assert/30_roles.sh.
-step 04-role.log    "$OCIS_PW\n0\n0\n" migrate:to-ocis:assign-role "$OCIS_ADMIN"
+#    oCIS returns the roles in a NON-DETERMINISTIC order, so we must NOT pick by
+#    index: index 0 is sometimes "User Light", which has no personal drive and
+#    makes the later file migration fail with 409 Conflict (see issue #42).
+#    Symfony's ChoiceQuestion also accepts the choice *label*, so we pick the
+#    standard "User" role by name -> stable regardless of the returned order.
+#    The trailing '0' is harmless (selects the default) if an app choice is also
+#    asked. Result is asserted independently in assert/30_roles.sh.
+step 04-role.log    "$OCIS_PW\nUser\n0\n" migrate:to-ocis:assign-role "$OCIS_ADMIN"
 # 5. migrate groups (prompts: password).
 step 05-groups.log  "$OCIS_PW\n" migrate:to-ocis:migrate:groups "$OCIS_ADMIN"
 # 6. migrate files via rclone (prompts: password).
