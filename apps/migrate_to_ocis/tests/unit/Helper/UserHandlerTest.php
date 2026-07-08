@@ -21,6 +21,42 @@ class UserHandlerTest extends \Test\TestCase {
 		$this->userHandler = new UserHandler($this->userGroupFinder);
 	}
 
+	public function testLoadFinderCache(): void {
+		$this->userGroupFinder->expects($this->once())
+			->method('loadCache')
+			->willReturn(true);
+		self::assertTrue($this->userHandler->loadFinderCache());
+	}
+
+	public function testLoadFinderCacheDone(): void {
+		$this->userGroupFinder->expects($this->once())
+			->method('loadCache')
+			->willReturn(false);
+		self::assertFalse($this->userHandler->loadFinderCache());
+	}
+
+	public function testLoadFinderCacheException(): void {
+		$this->expectException(\UnexpectedValueException::class);
+
+		$this->userGroupFinder->expects($this->once())
+			->method('loadCache')
+			->willThrowException(new \UnexpectedValueException());
+		$this->userHandler->loadFinderCache();
+	}
+
+	public function testSaveFinderCache(): void {
+		$this->userGroupFinder->expects($this->once())->method('saveCache');
+		self::assertNull($this->userHandler->saveFinderCache());
+	}
+
+	public function testSaveFinderCacheException(): void {
+		$this->expectException(\UnexpectedValueException::class);
+		$this->userGroupFinder->expects($this->once())
+			->method('saveCache')
+			->willThrowException(new \UnexpectedValueException());
+		$this->userHandler->saveFinderCache();
+	}
+
 	public function canBeMigratedProvider(): array {
 		// good user
 		$user1 = $this->createMock(IUser::class);

@@ -59,6 +59,14 @@ class StateAssignRole implements State {
 		$params['adminPassword'] = $token;  // replace the admin's password with the token
 		$params['client'] = $client;  // include the oCIS client so we don't need to create a new one each time
 
+		try {
+			$this->userGroupFinder->loadCache();
+		} catch (\UnexpectedValueException $ex) {
+			'@phan-var array{output:\Symfony\Component\Console\Output\OutputInterface} $params'; // @phpstan-ignore-line
+			$params['output']->writeln("<comment>Cache for the UserGroupFinder couldn't be loaded: {$ex->getMessage()}</comment>");
+			// we can keep going, albeit slowly
+		}
+
 		$this->userManager->callForUsers(function (IUser $user) use ($params) {
 			if ($this->userHandler->hasBeenMigrated($params['adminUser'], $params['adminPassword'], $user)) {
 				$this->assignRole($user, $params);

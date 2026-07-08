@@ -22,6 +22,7 @@ class UserGroupFinder {
 	 * @var array<string, string>
 	 */
 	private array $groupCache = [];
+	private bool $isCacheLoaded = false;
 	private Client $ocisClient;
 	private IUserManager $userManager;
 	private IGroupManager $groupManager;
@@ -161,7 +162,7 @@ class UserGroupFinder {
 	 * directory.
 	 * @throws \UnexpectedValueException
 	 */
-	public function saveCache() {
+	public function saveCache(): void {
 		$tmpFolder = $this->tempManager->getTempBaseDir();
 		if ($tmpFolder === '') {
 			throw new \UnexpectedValueException('Temporary folder is not set');
@@ -187,11 +188,23 @@ class UserGroupFinder {
 
 	/**
 	 * Load the cache previously saved with "saveCache".
-	 * Note that this will overwrite any value that this instance had
-	 * before this call.
+	 * This method will return true if the cache is successfully loaded
+	 * from the saved file. This will happen only once. After the first
+	 * loading, further calls will return false and won't reload the cache
+	 * unless forced.
+	 * Data in this instance will be overwritten only if the loading is
+	 * successful.
+	 * @param bool $force force the loading. If not forced, this will
+	 * only load the cache if it hasn't been loaded before (overwriting
+	 * any previously-loaded content).
+	 * @return bool true if the cache is loaded from file, false otherwise.
 	 * @throws \UnexpectedValueException
 	 */
-	public function loadCache() {
+	public function loadCache(bool $force = false): bool {
+		if (!$force && $this->isCacheLoaded) {
+			return false;
+		}
+
 		$tmpFolder = $this->tempManager->getTempBaseDir();
 		if ($tmpFolder === '') {
 			throw new \UnexpectedValueException('Temporary folder is not set');
@@ -218,6 +231,8 @@ class UserGroupFinder {
 
 		$this->userCache = $data['users'];
 		$this->groupCache = $data['groups'];
+		$this->isCacheLoaded = true;
+		return true;
 	}
 
 	public function cleanCache() {

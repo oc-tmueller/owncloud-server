@@ -261,7 +261,7 @@ class UserGroupFinderTest extends \Test\TestCase {
 		$this->userGroupFinder->saveCache();
 
 		$newUserGroupFinder = new UserGroupFinder($this->ocisClient, $this->userManager, $this->groupManager, $this->tempManager);
-		$newUserGroupFinder->loadCache();
+		self::assertTrue($newUserGroupFinder->loadCache());
 		self::assertSame('ocis_user_001', $newUserGroupFinder->getUser('admin', 'token', $user));
 		self::assertSame('ocis_group_01', $newUserGroupFinder->getGroup('admin', 'token', $group));
 	}
@@ -288,7 +288,7 @@ class UserGroupFinderTest extends \Test\TestCase {
 			->willReturn(['id' => 'ocis_group_01']);
 
 		$newUserGroupFinder = new UserGroupFinder($this->ocisClient, $this->userManager, $this->groupManager, $this->tempManager);
-		$newUserGroupFinder->loadCache();
+		self::assertTrue($newUserGroupFinder->loadCache());
 		self::assertSame('ocis_user_001', $newUserGroupFinder->getUser('admin', 'token', $user));
 		self::assertSame('ocis_group_01', $newUserGroupFinder->getGroup('admin', 'token', $group));
 	}
@@ -315,7 +315,7 @@ class UserGroupFinderTest extends \Test\TestCase {
 			->willReturn(['id' => 'ocis_group_01']);
 
 		$newUserGroupFinder = new UserGroupFinder($this->ocisClient, $this->userManager, $this->groupManager, $this->tempManager);
-		$newUserGroupFinder->loadCache();
+		self::assertTrue($newUserGroupFinder->loadCache());
 		self::assertSame('ocis_user_001', $newUserGroupFinder->getUser('admin', 'token', $user));
 		self::assertSame('ocis_group_01', $newUserGroupFinder->getGroup('admin', 'token', $group));
 	}
@@ -337,6 +337,48 @@ class UserGroupFinderTest extends \Test\TestCase {
 		$this->userGroupFinder->cleanCache();
 
 		$newUserGroupFinder = new UserGroupFinder($this->ocisClient, $this->userManager, $this->groupManager, $this->tempManager);
-		$newUserGroupFinder->loadCache();
+		self::assertTrue($newUserGroupFinder->loadCache());
+	}
+
+	public function testSaveAndDoubleLoadCache(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUserName')->willReturn('user001');
+		$user2 = $this->createMock(IUser::class);
+		$user2->method('getUserName')->willReturn('user002');
+		$user3 = $this->createMock(IUser::class);
+		$user3->method('getUserName')->willReturn('user003');
+
+		$group = $this->createMock(IGroup::class);
+		$group->method('getDisplayName')->willReturn('group01');
+
+		$this->tempManager->method('getTempBaseDir')->willReturn('/tmp');
+
+		$this->ocisClient->expects($this->exactly(2))
+			->method('checkUser')
+			->willReturn(null);
+
+		$this->userGroupFinder->addUserToCache($user, 'ocis_user_001');
+		$this->userGroupFinder->addGroupToCache($group, 'ocis_group_01');
+		$this->userGroupFinder->saveCache();
+
+		$newUserGroupFinder = new UserGroupFinder($this->ocisClient, $this->userManager, $this->groupManager, $this->tempManager);
+		$newUserGroupFinder->addUserToCache($user2, 'ocis_user_002');
+
+		self::assertSame('ocis_user_002', $newUserGroupFinder->getUser('admin', 'token', $user2));
+		self::assertTrue($newUserGroupFinder->loadCache());
+
+		$newUserGroupFinder->addUserToCache($user3, 'ocis_user_003');
+		self::assertNull($newUserGroupFinder->getUser('admin', 'token', $user2));  // overwritten and not found
+		self::assertSame('ocis_user_001', $newUserGroupFinder->getUser('admin', 'token', $user));
+		self::assertSame('ocis_user_003', $newUserGroupFinder->getUser('admin', 'token', $user3));
+		self::assertSame('ocis_group_01', $newUserGroupFinder->getGroup('admin', 'token', $group));
+		self::assertFalse($newUserGroupFinder->loadCache());
+		self::assertSame('ocis_user_001', $newUserGroupFinder->getUser('admin', 'token', $user));
+		self::assertSame('ocis_user_003', $newUserGroupFinder->getUser('admin', 'token', $user3));
+		self::assertSame('ocis_group_01', $newUserGroupFinder->getGroup('admin', 'token', $group));
+		self::assertTrue($newUserGroupFinder->loadCache(true));
+		self::assertSame('ocis_user_001', $newUserGroupFinder->getUser('admin', 'token', $user));
+		self::assertNull($newUserGroupFinder->getUser('admin', 'token', $user3));  // user3 not saved in cache
+		self::assertSame('ocis_group_01', $newUserGroupFinder->getGroup('admin', 'token', $group));
 	}
 }

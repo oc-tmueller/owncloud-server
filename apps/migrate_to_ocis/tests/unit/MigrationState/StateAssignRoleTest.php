@@ -76,6 +76,7 @@ class StateAssignRoleTest extends \Test\TestCase {
 			->method('switchState')
 			->with(StateMigrateGroups::class);
 
+		$this->userGroupFinder->expects($this->once())->method('loadCache');
 		$this->userGroupFinder->expects($this->once())->method('saveCache');
 		$this->userGroupFinder->expects($this->exactly(3))
 			->method('getUser')
@@ -125,6 +126,7 @@ class StateAssignRoleTest extends \Test\TestCase {
 		$migration = $this->createMock(Migration::class);
 		$migration->expects($this->never())->method('switchState');
 
+		$this->userGroupFinder->expects($this->never())->method('loadCache');
 		$this->userGroupFinder->expects($this->never())->method('saveCache');
 		$this->userGroupFinder->expects($this->never())->method('getUser');
 
@@ -180,6 +182,7 @@ class StateAssignRoleTest extends \Test\TestCase {
 			->method('switchState')
 			->with(StateMigrateGroups::class);
 
+		$this->userGroupFinder->expects($this->once())->method('loadCache');
 		$this->userGroupFinder->expects($this->once())->method('saveCache');
 		$this->userGroupFinder->expects($this->exactly(2))
 			->method('getUser')
@@ -252,6 +255,7 @@ class StateAssignRoleTest extends \Test\TestCase {
 			->method('switchState')
 			->with(StateMigrateGroups::class);
 
+		$this->userGroupFinder->expects($this->once())->method('loadCache');
 		$this->userGroupFinder->expects($this->once())->method('saveCache');
 		$this->userGroupFinder->expects($this->exactly(3))
 			->method('getUser')
@@ -324,6 +328,7 @@ class StateAssignRoleTest extends \Test\TestCase {
 			->method('switchState')
 			->with(StateMigrateGroups::class);
 
+		$this->userGroupFinder->expects($this->once())->method('loadCache');
 		$this->userGroupFinder->expects($this->once())->method('saveCache');
 		$this->userGroupFinder->expects($this->exactly(2))
 			->method('getUser')
@@ -397,6 +402,7 @@ class StateAssignRoleTest extends \Test\TestCase {
 			->method('switchState')
 			->with(StateMigrateGroups::class);
 
+		$this->userGroupFinder->expects($this->once())->method('loadCache');
 		$this->userGroupFinder->expects($this->once())
 			->method('saveCache')
 			->willThrowException(new \UnexpectedValueException());
@@ -422,6 +428,83 @@ class StateAssignRoleTest extends \Test\TestCase {
 					$this->matchesRegularExpression('/user002.*role assigned/'),
 					$this->matchesRegularExpression('/user003.*role assigned/'),
 					$this->matchesRegularExpression('/cache.*couldn\'t be saved/i'),
+				)
+			);
+
+		$params = [
+			'roleId' => 'ocis_role_id_user',
+			'appId' => 'ocis_app_id',
+			'adminUser' => 'Madmin',
+			'adminPassword' => 'Pamword',
+			'output' => $output,
+		];
+		$this->stateAssignRole->migrate($params, $migration);
+	}
+
+	public function testMigrateNoCacheLoaded(): void {
+		// it will behave as a regular migration
+		$client = $this->createMock(Client::class);
+		$client->method('tokenExchange')->willReturn('tok0011kot');
+		$client->expects($this->exactly(3))->method('assignRole');
+
+		$this->ocisClientService->method('newOCISClient')->willReturn($client);
+
+		$this->userHandler->method('hasBeenMigrated')->willReturn(true);
+
+		$user1 = $this->createMock(IUser::class);
+		$user1->method('isEnabled')->willReturn(false);
+		$user1->method('getUserName')->willReturn('user001');
+		$user1->method('getEMailAddress')->willReturn('user001@example.prv');
+
+		$user2 = $this->createMock(IUser::class);
+		$user2->method('isEnabled')->willReturn(true);
+		$user2->method('getUserName')->willReturn('user002');
+		$user2->method('getEMailAddress')->willReturn('user002@example.prv');
+
+		$user3 = $this->createMock(IUser::class);
+		$user3->method('isEnabled')->willReturn(true);
+		$user3->method('getUserName')->willReturn('user003');
+		$user3->method('getEMailAddress')->willReturn('user003@example.prv');
+
+		$users = [$user1, $user2, $user3];
+
+		$this->userManager->method('callForUsers')->willReturnCallback(function ($callback) use ($users) {
+			foreach ($users as $user) {
+				$callback($user);
+			}
+		});
+
+		$migration = $this->createMock(Migration::class);
+		$migration->expects($this->once())
+			->method('switchState')
+			->with(StateMigrateGroups::class);
+
+		$this->userGroupFinder->expects($this->once())
+			->method('loadCache')
+			->willThrowException(new \UnexpectedValueException());
+		$this->userGroupFinder->expects($this->once())->method('saveCache');
+		$this->userGroupFinder->expects($this->exactly(3))
+			->method('getUser')
+			->willReturnCallback(function ($adminUser, $token, $user) {
+				switch ($user->getUsername()) {
+					case "user001":
+						return "001oCISuser";
+					case "user002":
+						return "002oCISuser";
+					case "user003":
+						return "003oCISuser";
+				}
+			});
+
+		$output = $this->createMock(OutputInterface::class);
+		$output->expects($this->atLeastOnce())
+			->method('writeln')
+			->with(
+				$this->logicalOr(
+					$this->matchesRegularExpression('/user001.*role assigned/'),
+					$this->matchesRegularExpression('/user002.*role assigned/'),
+					$this->matchesRegularExpression('/user003.*role assigned/'),
+					$this->matchesRegularExpression('/cache.*couldn\'t be loaded/i'),
 				)
 			);
 

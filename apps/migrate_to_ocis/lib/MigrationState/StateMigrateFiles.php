@@ -103,6 +103,14 @@ class StateMigrateFiles implements State {
 			throw new MigrateException("ocis host isn't defined!");
 		}
 
+		try {
+			$this->userHandler->loadFinderCache();  // ensure cache is loaded
+		} catch (\UnexpectedValueException $ex) {
+			'@phan-var array{output:\Symfony\Component\Console\Output\OutputInterface} $params'; // @phpstan-ignore-line
+			$params['output']->writeln("<comment>Cache couldn't be loaded: {$ex->getMessage()}</comment>");
+			// we can keep going, albeit slowly
+		}
+
 		$ok = true;
 		$this->userManager->callForUsers(function (IUser $user) use (&$ok, $logFile, $params) {
 			$output = $params['output'];
@@ -128,6 +136,13 @@ class StateMigrateFiles implements State {
 		}
 
 		$migration->switchState(StateMigrateShares::class);
+
+		try {
+			$this->userHandler->saveFinderCache();
+		} catch (\UnexpectedValueException $ex) {
+			'@phan-var array{output:\Symfony\Component\Console\Output\OutputInterface} $params'; // @phpstan-ignore-line
+			$params['output']->writeln("<comment>Cache couldn't be saved: {$ex->getMessage()}</comment>");
+		}
 	}
 
 	public function skip(array $params, Migration $migration) {

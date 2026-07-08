@@ -17,6 +17,24 @@ class UserHandler {
 	}
 
 	/**
+	 * Loads the internal userGroupFinder cache.
+	 * @return bool true if the cache is loaded by this call, false if
+	 * it has been loaded already.
+	 * @throws \UnexpectedValueException if cache can't be loaded
+	 */
+	public function loadFinderCache(): bool {
+		return $this->userGroupFinder->loadCache();
+	}
+
+	/**
+	 * Saves the internal userGroupFinder cache.
+	 * @throws \UnexpectedValueException if the cache can't be saved
+	 */
+	public function saveFinderCache(): void {
+		$this->userGroupFinder->saveCache();
+	}
+
+	/**
 	 * Check if the target user can be migrated to oCIS. The user must
 	 * has an email address and musn't be disabled.
 	 * LDAP users won't be migrated
