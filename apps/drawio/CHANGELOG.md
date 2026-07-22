@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
+## [1.1.1] - 2026-07-22
+
+### Changed
+- Maintenance release re-signed with the ownCloud G2 code-signing certificate for the ownCloud 11.0.0 release.
+
+## [1.1.0] - 2026-06-29
+
+### Changed
+- ownCloud 11 compatible release (oc 11.0.0-rc1).
+
+
 ## [1.0.2] - 2025-07-01
 
 ### Fixed
@@ -42,7 +53,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## 0.0.1 - Initial Release
 
-[Unreleased]: https://github.com/owncloud/metrics/compare/v1.0.1...master
+[Unreleased]: https://github.com/owncloud/drawio/compare/v1.1.1..master
+[1.1.1]: https://github.com/owncloud/drawio/compare/v1.1.0..v1.1.1
+[1.1.0]: https://github.com/owncloud/drawio/compare/v1.0.2..v1.1.0
+[1.0.2]: https://github.com/owncloud/drawio/compare/v1.0.1..v1.0.2
 [1.0.1]: https://github.com/owncloud/metrics/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/owncloud/metrics/compare/v0.0.8...v1.0.0
 [0.0.9]: https://github.com/owncloud/metrics/compare/v0.0.7...v0.0.9
