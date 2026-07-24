@@ -34,7 +34,7 @@ class MigrateUsers extends CommandMigration {
 	}
 
 	protected function verifyState(State $state, array &$params): ?string {
-		if (\get_class($state) !== StateMigrateUsers::class) {
+		if (!($state instanceof StateMigrateUsers)) {
 			throw new VerifyStateException('Wrong migration state to migrate the users.');
 		}
 		return null;

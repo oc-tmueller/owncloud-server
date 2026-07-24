@@ -31,7 +31,7 @@ class MigrateShares extends CommandMigration {
 	}
 
 	protected function verifyState(State $state, array &$params): ?string {
-		if (\get_class($state) !== StateMigrateShares::class) {
+		if (!($state instanceof StateMigrateShares)) {
 			throw new VerifyStateException('Wrong migration state to migrate the files.');
 		}
 		return null;

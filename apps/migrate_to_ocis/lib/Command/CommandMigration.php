@@ -164,7 +164,7 @@ abstract class CommandMigration extends CommandBase {
 			$this->printException($output, $ex);
 
 			// if the state is the last one (StateFinish) show a different message
-			if (\get_class($this->migration->getState()) === StateFinish::class) {
+			if ($this->migration->getState() instanceof StateFinish) {
 				$output->writeln('Data migration has ended. There is nothing left to do.');
 			} else {
 				$output->writeln("Consider to run {$currentState->associatedCommand()} to keep going with the migration");
@@ -193,7 +193,7 @@ abstract class CommandMigration extends CommandBase {
 		$this->postSavedActions($input, $output);
 
 		$currentState = $this->migration->getState();
-		if (\get_class($currentState) === StateFinish::class) {
+		if ($currentState instanceof StateFinish) {
 			$output->writeln('Data migration has ended. There is nothing left to do.');
 		} else {
 			$output->writeln("Continue the migration with {$currentState->associatedCommand()}");

@@ -50,7 +50,7 @@ class Init extends CommandMigration {
 	}
 
 	protected function verifyState(State $state, array &$params): ?string {
-		if (\get_class($state) !== StateInit::class) {
+		if (!($state instanceof StateInit)) {
 			// We aren't in a starting state. We should abort.
 			// We only keep going and re-init the migration if forced
 			if (!$params['force']) {

@@ -16,8 +16,12 @@ use Symfony\Component\Console\Output\OutputInterface;
  * Check if the local ownCloud Classic installation can be migrated.
  */
 class Verify extends CommandMigration {
-	public function __construct(Migration $migration) {
+	/** @var Storage */
+	private Storage $storage;
+
+	public function __construct(Migration $migration, Storage $storage) {
 		parent::__construct($migration);
+		$this->storage = $storage;
 	}
 
 	protected function configure() {
@@ -35,7 +39,7 @@ class Verify extends CommandMigration {
 	}
 
 	protected function verifyState(State $state, array &$params): ?string {
-		if (\get_class($state) !== StateVerify::class) {
+		if (!($state instanceof StateVerify)) {
 			throw new VerifyStateException('Wrong migration state to run the verification.');
 		}
 		return null;
@@ -47,8 +51,7 @@ class Verify extends CommandMigration {
 
 	protected function postSavedActions(InputInterface $input, OutputInterface $output) {
 		# display total storage
-		$storage = new Storage(\OC::$server->getDatabaseConnection());
-		$usedStorage = $storage->getUsedTotalSpace();
+		$usedStorage = $this->storage->getUsedTotalSpace();
 		$output->writeln('');
 		$output->writeln("Total disk storage: " . Util::humanFileSize($usedStorage));
 		$output->writeln('');
