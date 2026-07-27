@@ -5,4 +5,4 @@ certificate, so it could not be verified by ownCloud Classic's integrity check.
 The 2.0.1 release distribution is signed with the G1 code-signing certificate,
 allowing `occ integrity:check-app migrate_to_ocis` to validate the app.
 
-https://github.com/owncloud/migrate_to_ocis/pull/48
+https://github.com/owncloud/migrate_to_ocis/pull/49

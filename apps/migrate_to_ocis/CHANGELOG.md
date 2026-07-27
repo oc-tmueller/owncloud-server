@@ -12,7 +12,7 @@ The following sections list the changes for 2.0.1.
 ## Summary
 
 * Bugfix - Select the migration role by name in the acceptance test: [#42](https://github.com/owncloud/migrate_to_ocis/issues/42)
-* Change - Ship a properly signed release tarball: [#48](https://github.com/owncloud/migrate_to_ocis/pull/48)
+* Change - Ship a properly signed release tarball: [#49](https://github.com/owncloud/migrate_to_ocis/pull/49)
 
 ## Details
 
@@ -31,14 +31,14 @@ The following sections list the changes for 2.0.1.
 
    https://github.com/owncloud/migrate_to_ocis/issues/42
 
-* Change - Ship a properly signed release tarball: [#48](https://github.com/owncloud/migrate_to_ocis/pull/48)
+* Change - Ship a properly signed release tarball: [#49](https://github.com/owncloud/migrate_to_ocis/pull/49)
 
    The 2.0.0 release tarball was not signed with the ownCloud code-signing
    certificate, so it could not be verified by ownCloud Classic's integrity check.
    The 2.0.1 release distribution is signed with the G1 code-signing certificate,
    allowing `occ integrity:check-app migrate_to_ocis` to validate the app.
 
-   https://github.com/owncloud/migrate_to_ocis/pull/48
+   https://github.com/owncloud/migrate_to_ocis/pull/49
 
 # Changelog for [2.0.0] (2026-07-02)
 
