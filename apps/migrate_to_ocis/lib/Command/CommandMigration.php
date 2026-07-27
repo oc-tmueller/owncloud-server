@@ -3,6 +3,7 @@
 
 namespace OCA\MigrateToInfiniteScale\Command;
 
+use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use OCA\MigrateToInfiniteScale\MigrationState\Migration;
@@ -238,7 +239,7 @@ abstract class CommandMigration extends CommandBase {
 	}
 
 	private function printException(OutputInterface $output, \Exception $ex) {
-		$formatter = $this->getHelper('formatter');
+		$formatter = new FormatterHelper();
 
 		$messages = [$ex->getMessage()];
 		$previous = $ex->getPrevious();

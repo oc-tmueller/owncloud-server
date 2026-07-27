@@ -5,7 +5,7 @@ This file provides context for AI coding agents (Claude Code, GitHub Copilot, Cu
 ## Repository Overview
 - **Product family:** ownCloud Classic — migration tooling
 - **Purpose:** ownCloud app that migrates users, groups, files and shares from ownCloud Classic to ownCloud Infinite Scale (oCIS).
-- **Primary language:** PHP (>= 7.4)
+- **Primary language:** PHP (>= 8.3)
 - **Build system:** Composer, Make
 - **Test framework:** PHPUnit (unit), Docker-based end-to-end acceptance tests
 - **CI system:** GitHub Actions (plus Drone)

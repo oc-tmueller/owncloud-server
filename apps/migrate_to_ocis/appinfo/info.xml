@@ -6,11 +6,11 @@
     <description>Migrate ownCloud Classic to ownCloud Infinite Scale.</description>
     <licence>APL2</licence>
     <author>ownCloud GmbH - a Kiteworks Company</author>
-    <version>2.0.1</version>
+    <version>3.0.0</version>
     <namespace>MigrateToInfiniteScale</namespace>
     <category>integration</category>
     <dependencies>
-        <owncloud min-version="10.15" max-version="11"/>
+        <owncloud min-version="11" max-version="11"/>
     </dependencies>
     <screenshot>https://raw.githubusercontent.com/owncloud/screenshots/master/migrate_to_ocis/migrate_to_ocis.png</screenshot>
     <documentation>

@@ -26,8 +26,10 @@ services:
       retries: 60
     networks: [mignet]
 
+  # ownCloud Server 11 (the migration app requires oc11). The service keeps its
+  # historical `oc10` name so the rest of the harness/env wiring is unchanged.
   oc10:
-    image: owncloud/server:${OC10_TAG:-10.15}
+    image: owncloud/server:${OC10_TAG:-11.0.0-rc2}
     depends_on:
       db:
         condition: service_healthy

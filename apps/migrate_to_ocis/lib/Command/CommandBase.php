@@ -3,6 +3,7 @@
 namespace OCA\MigrateToInfiniteScale\Command;
 
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
@@ -16,8 +17,7 @@ class CommandBase extends Command {
 	 * @return string
 	 */
 	protected function askAdminPassword(InputInterface $input, OutputInterface $output, string $adminUser): string {
-		/** @var \Symfony\Component\Console\Helper\QuestionHelper $helper */
-		$helper = $this->getHelper('question');
+		$helper = new QuestionHelper();
 		$question = new Question(
 			"Password for $adminUser: ",
 		);
@@ -34,8 +34,7 @@ class CommandBase extends Command {
 	}
 
 	protected function askForDefaultRole(InputInterface $input, OutputInterface $output, array $apps) {
-		/** @var \Symfony\Component\Console\Helper\QuestionHelper $helper */
-		$helper = $this->getHelper('question');
+		$helper = new QuestionHelper();
 
 		$appsDisplayName = \array_map(function ($app) {
 			return $app['displayName'];

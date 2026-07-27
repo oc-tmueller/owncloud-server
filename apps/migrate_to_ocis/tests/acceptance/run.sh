@@ -67,6 +67,13 @@ if [ "$RUN_UP" = "1" ]; then
     chmod +x /var/www/owncloud/apps/migrate_to_ocis/bin/rclone_linux_amd64
   '
 
+  # ownCloud 11 enforces app code-signing and refuses to enable an unsigned app.
+  # The acceptance run mounts the working tree (a dev checkout, unsigned), so the
+  # integrity check must be disabled for it to load. This is test-only; released
+  # tarballs are signed with the G2 certificate.
+  log "disabling code integrity check (unsigned dev checkout under test)"
+  occ config:system:set integrity.check.disabled --type boolean --value true
+
   log "enabling migrate_to_ocis app in ownCloud Classic"
   occ app:enable migrate_to_ocis
 fi
