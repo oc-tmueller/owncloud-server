@@ -30,6 +30,10 @@ cert_dir=$(HOME)/.owncloud/certificates/G2
 private_key=$(cert_dir)/$(app_name).key
 certificate=$(cert_dir)/$(app_name).crt
 chain=$(cert_dir)/intermediate.crt
+# Kept overridable so CI can supply its own signing command - the release
+# workflow passes sign="ocsign --key=... --cert=... --chain=..." pointing at key
+# material written from repository secrets instead of the local certificate store.
+sign=$(ocsign) --key="$(private_key)" --cert="$(certificate)" $(chain_arg)
 sign_skip_msg="Skipping signing, either no key and certificate found in $(private_key) and $(certificate) or ocsign can not be found in PATH (install from https://github.com/owncloud/ocsign)"
 ifneq (,$(wildcard $(private_key)))
 ifneq (,$(wildcard $(certificate)))
@@ -92,7 +96,7 @@ distdir:
 .PHONY: sign
 sign:
 ifdef CAN_SIGN
-	$(ocsign) --path="$(dist_dir)/$(app_name)" --key="$(private_key)" --cert="$(certificate)" $(chain_arg)
+	$(sign) --path="$(dist_dir)/$(app_name)"
 else
 	@echo $(sign_skip_msg)
 endif
