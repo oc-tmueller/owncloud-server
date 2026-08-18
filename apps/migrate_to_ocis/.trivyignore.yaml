@@ -1,0 +1,50 @@
+# Accepted vulnerabilities for the Trivy scan (see .github/workflows/security-scan.yml).
+#
+# Every entry MUST carry expired_at. Once the date passes Trivy reports the
+# finding again and the scan turns red - an accepted risk is meant to be
+# revisited, not buried. Verified: an expired entry does not suppress.
+vulnerabilities:
+  # bin/rclone_linux_amd64 is upstream rclone v1.75.0, the newest release
+  # (2026-07-31), built by upstream with go1.26.5. These eight stdlib findings
+  # are all fixed in go 1.25.13 / 1.26.6, which no rclone release has been built
+  # with yet - there is no rclone binary available today that does not report
+  # them. All are denial of service / XSS class, none CRITICAL, and none is
+  # reachable from how this app drives rclone: it shells out to `rclone sync`
+  # and `rclone obscure` against a single trusted ownCloud WebDAV endpoint, with
+  # no untrusted ASN.1, DNS, XML, HTML template or inbound HTTP/2 input.
+  #
+  # Drop these entries as soon as rclone publishes a release built with
+  # go >= 1.26.6. Scoped to the binary's path on purpose, so the acceptance
+  # cannot silently spread to other components.
+  - id: CVE-2026-33818 # encoding/asn1: DoS via excessive recursion in Unmarshal
+    paths: ["bin/rclone_linux_amd64"]
+    statement: rclone v1.75.0 is built with go1.26.5; fixed in go 1.25.13/1.26.6, no rclone release ships it yet.
+    expired_at: 2026-11-01
+  - id: CVE-2026-39821 # golang.org/x/net/idna: privilege escalation via Punycode label processing
+    paths: ["bin/rclone_linux_amd64"]
+    statement: rclone v1.75.0 is built with go1.26.5; fixed in go 1.25.13/1.26.6, no rclone release ships it yet.
+    expired_at: 2026-11-01
+  - id: CVE-2026-46600 # golang.org/x/net/dns/dnsmessage: DoS via invalid DNS record parsing
+    paths: ["bin/rclone_linux_amd64"]
+    statement: rclone v1.75.0 is built with go1.26.5; fixed in go 1.26.6, no rclone release ships it yet.
+    expired_at: 2026-11-01
+  - id: CVE-2026-56853 # net/http: DoS on unencrypted HTTP/2 connections
+    paths: ["bin/rclone_linux_amd64"]
+    statement: rclone v1.75.0 is built with go1.26.5; fixed in go 1.25.13/1.26.6, no rclone release ships it yet.
+    expired_at: 2026-11-01
+  - id: CVE-2026-56858 # html/template: XSS via pathological input
+    paths: ["bin/rclone_linux_amd64"]
+    statement: rclone v1.75.0 is built with go1.26.5; fixed in go 1.25.13/1.26.6, no rclone release ships it yet.
+    expired_at: 2026-11-01
+  - id: CVE-2026-56859 # encoding/xml: DoS via decoding recursion depth
+    paths: ["bin/rclone_linux_amd64"]
+    statement: rclone v1.75.0 is built with go1.26.5; fixed in go 1.25.13/1.26.6, no rclone release ships it yet.
+    expired_at: 2026-11-01
+  - id: CVE-2026-56860 # net/url: DoS from quadratic complexity in path handling
+    paths: ["bin/rclone_linux_amd64"]
+    statement: rclone v1.75.0 is built with go1.26.5; fixed in go 1.25.13/1.26.6, no rclone release ships it yet.
+    expired_at: 2026-11-01
+  - id: CVE-2026-56862 # crypto/tls: DoS via indefinite KeyUpdate messages
+    paths: ["bin/rclone_linux_amd64"]
+    statement: rclone v1.75.0 is built with go1.26.5; fixed in go 1.25.13/1.26.6, no rclone release ships it yet.
+    expired_at: 2026-11-01

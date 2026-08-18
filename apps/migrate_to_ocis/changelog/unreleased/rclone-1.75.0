@@ -1,0 +1,16 @@
+Security: Update the bundled rclone binary to upstream v1.75.0
+
+The app shipped a custom rclone fork build (v1.67.0-beta.8042.483c2feed,
+built 2024-07-01 with Go 1.22.4). That binary carried 23 HIGH/CRITICAL
+vulnerabilities, 16 of them Go standard library issues - among them
+CVE-2025-68121 (crypto/tls certificate validation), CVE-2024-45337
+(golang.org/x/crypto) and CVE-2026-33186 (gRPC).
+
+We've replaced it with the official upstream release v1.75.0, which is built
+with Go 1.26.5 and reports no known HIGH or CRITICAL vulnerabilities. The fork
+was not needed: the app only runs `rclone sync` and `rclone obscure` against
+`type=webdav,vendor=owncloud` remotes, and upstream supports every flag the app
+passes, including `--webdav-owncloud-exclude-shares` and
+`--webdav-owncloud-exclude-mounts`.
+
+https://github.com/owncloud/migrate_to_ocis/pull/56
