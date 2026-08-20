@@ -1,8 +1,38 @@
 # Table of Contents
 
+* [Changelog for 3.0.1](#changelog-for-301-2026-08-20)
 * [Changelog for 3.0.0](#changelog-for-300-2026-07-27)
 * [Changelog for 2.0.1](#changelog-for-201-2026-07-24)
 * [Changelog for 2.0.0](#changelog-for-200-2026-07-02)
+
+# Changelog for [3.0.1] (2026-08-20)
+
+The following sections list the changes for 3.0.1.
+
+[3.0.1]: https://github.com/owncloud/migrate_to_ocis/compare/v3.0.0...v3.0.1
+
+## Summary
+
+* Security - Update the bundled rclone binary to upstream v1.75.0: [#56](https://github.com/owncloud/migrate_to_ocis/pull/56)
+
+## Details
+
+* Security - Update the bundled rclone binary to upstream v1.75.0: [#56](https://github.com/owncloud/migrate_to_ocis/pull/56)
+
+   The app shipped a custom rclone fork build (v1.67.0-beta.8042.483c2feed, built
+   2024-07-01 with Go 1.22.4). That binary carried 23 HIGH/CRITICAL
+   vulnerabilities, 16 of them Go standard library issues - among them
+   CVE-2025-68121 (crypto/tls certificate validation), CVE-2024-45337
+   (golang.org/x/crypto) and CVE-2026-33186 (gRPC).
+
+   We've replaced it with the official upstream release v1.75.0, which is built
+   with Go 1.26.5 and reports no known HIGH or CRITICAL vulnerabilities. The fork
+   was not needed: the app only runs `rclone sync` and `rclone obscure` against
+   `type=webdav,vendor=owncloud` remotes, and upstream supports every flag the app
+   passes, including `--webdav-owncloud-exclude-shares` and
+   `--webdav-owncloud-exclude-mounts`.
+
+   https://github.com/owncloud/migrate_to_ocis/pull/56
 
 # Changelog for [3.0.0] (2026-07-27)
 
