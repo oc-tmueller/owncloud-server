@@ -1,0 +1,17 @@
+OC.L10N.register(
+    "drawio",
+    {
+    "Loading diagram..." : "ກຳລັງໂຫລດແຜນວາດ...",
+    "Error: This is not a Drawio file!" : "ຂໍ້ຜິດພາດ: ນີ້ບໍ່ແມ່ນໄຟລ໌ Drawio!",
+    "Error: Failed to load the file!" : "ຂໍ້ຜິດພາດ: ໂຫລດໄຟລ໌ບໍ່ສຳເລັດ!",
+    "File is currently being used by somebody else" : "ໄຟລ໌ນີ້ກຳລັງຖືກນຳໃຊ້ໂດຍຜູ້ນື່ນ",
+    "Saving..." : "ກຳລັງບັນທຶກ...",
+    "Saved" : "ບັນທຶກແລ້ວ",
+    "Error: Could not save file!" : "ຂໍ້ຜິດພາດ: ບໍ່ສາມາດບັນທຶກໄຟລ໌ໄດ້!",
+    "Failed to create a new file." : "ສ້າງໄຟລ໌ໃໝ່ບໍ່ສຳເລັດ.",
+    "Open in Draw.io" : "ເປີດໃນ Draw.io",
+    "Diagram" : "ແຜນວາດ",
+    "New Diagram.drawio" : "ແຜນວາດໃໝ່.drawio",
+    "There was an error loading the diagram file. Check permissions and try again." : "ເກີດຂໍ້ຜິດພາດໃນການໂຫລດໄຟລ໌ແຜນວາດ. ກະລຸນາກວດສອບສິດການເຂົ້າເຖິງ ແລ້ວລອງໃໝ່ອີກຄັ້ງ."
+},
+"nplurals=1; plural=0;");
