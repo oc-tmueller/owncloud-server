@@ -1,0 +1,13 @@
+OC.L10N.register(
+    "notes",
+    {
+    "Notes" : "Minnispunktar",
+    "New note" : "Nýr minnispunktur",
+    "Delete note" : "Eyða minnispunkti",
+    "Favorite" : "Eftirlæti",
+    "Note is currently saving. Leaving the page will delete all changes!" : "Minnispunktur er nú að vistast. Ef farið er af síðunni munu allar breytingar eyðast!",
+    "No note selected" : "Enginn minnispunktur valinn",
+    "Create a note using the + button in the sidebar." : "Búðu til minnispunkt með + hnappnum á hliðarstikunni.",
+    "_%n word_::_%n words_" : ["%n orð","%n orð"]
+},
+"nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

@@ -1,0 +1,13 @@
+OC.L10N.register(
+    "notes",
+    {
+    "Notes" : "Anteckningar",
+    "New note" : "Ny anteckning",
+    "Delete note" : "Radera anteckning",
+    "Favorite" : "Favorit",
+    "Note is currently saving. Leaving the page will delete all changes!" : "Anteckning sparas just nu. Lämnar du sidan försvinner alla ändringar!",
+    "No note selected" : "Ingen anteckning vald",
+    "Create a note using the + button in the sidebar." : "Skapa en anteckning med +-knappen i sidofältet.",
+    "_%n word_::_%n words_" : ["%n ord","%n ord"]
+},
+"nplurals=2; plural=(n != 1);");

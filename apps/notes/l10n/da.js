@@ -1,0 +1,13 @@
+OC.L10N.register(
+    "notes",
+    {
+    "New note" : "Ny note",
+    "Note is currently saving. Leaving the page will delete all changes!" : "Note er i færd med at blive gemt. Forladelde af siden vil slette alle ændringer!",
+    "_%n word_::_%n words_" : ["%n ord","%n dage"],
+    "Delete note" : "Slet note",
+    "Favorite" : "Foretrukken",
+    "Notes" : "Noter",
+    "No note selected" : "Ingen note valgt",
+    "Create a note using the + button in the sidebar." : "Opret en note med +-knappen i sidepanelet."
+},
+"nplurals=2; plural=(n != 1);");

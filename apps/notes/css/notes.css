@@ -1,0 +1,186 @@
+/**
+ * Copyright (c) 2013, Jan-Christoph Borchardt http://jancborchardt.net
+ * This file is licensed under the Affero General Public License version 3 or later.
+ * See the COPYING file.
+ */
+
+#app-navigation {
+    padding-bottom: 0; /* no settings bar, so no padding needed */
+}
+
+#app-navigation #note-add span {
+    display: none;
+    font-weight: bold;
+    padding-left: 2px;
+}
+
+#app-navigation #note-add:hover span,
+#app-navigation #note-add:focus span {
+    display: inline;
+}
+
+#app-navigation .utils button {
+    margin: 0;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: transparent;
+    border: 0;
+    box-shadow: none;
+    display: none;
+    height: 32px;
+    width: 32px;
+}
+
+/* override snap.js animation causing loading icon to fly into app-content */
+#app-content.loading {
+    transition: none !important;
+    -webkit-transition: none !important;
+}
+
+/* only display the delete button when the feed is active */
+#app-navigation .utils .delete-button {
+    display: none;
+}
+
+#app-navigation .active > .utils .icon-delete,
+#app-navigation .active > .utils .icon-star {
+    display: inline-block;
+    opacity: .3;
+}
+#app-navigation .utils .icon-starred {
+    display: inline-block;
+    opacity: 1 !important;
+}
+
+.tooltip {
+    text-shadow: none;
+    text-transform: none;
+}
+
+#app-content-container {
+    height: 100%;
+}
+
+/* special styling to make editor subtle and fit the window */
+#app-content pre {
+    display: block;
+    min-height: 100%;
+    width: 100%;
+    margin: 0 0 -50px;
+    padding: 30px 20px 90px 30px;
+    font-size: 16px;
+    line-height: 170%;
+    background: none;
+    resize: none;
+    -moz-box-sizing: border-box; box-sizing: border-box;
+    font-family: inherit;
+}
+
+#app-content .note-meta {
+    padding: 0 45px 30px 45px;
+    margin: -10px 0 0;
+    opacity: .2;
+    -ms-user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
+
+#app-content .saving {
+    background: url('../img/loading.gif') no-repeat right 15px top 15px / 24px !important;
+    /* Overrides the snap.js animation making the loading icon to fly in app-content. */
+    transition: none !important;
+    -webkit-transition: none !important;
+}
+
+
+/* markdown styling */
+
+.mdedit .heading {
+    /* break from core in using semibold, otherwise not emphasized in texts */
+	font-weight: 600;
+}
+.mdedit .heading.heading-1 {
+    font-size: 40px;
+    margin: 50px 0 20px;
+    line-height: 120%;
+}
+.mdedit .heading.heading-2 {
+	font-size: 20px;
+    margin-top: 12px;
+    line-height: 150%;
+}
+.mdedit .heading.heading-3,
+.mdedit .heading.heading-4,
+.mdedit .heading.heading-5,
+.mdedit .heading.heading-6 {
+	font-size: 16px;
+    margin: 0;
+    font-weight: 300;
+}
+.mdedit .heading.heading-3 {
+    font-weight: 600;
+}
+
+.mdedit .hr {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    margin: .5em 0;
+}
+.mdedit .hr-marker {
+    background-color: white;
+}
+.mdedit .hr-marker:last-child {
+    padding-right: 10px;
+}
+.mdedit .hr:before {
+    position: absolute;
+    content: "";
+    top: 50%;
+    width: 100%;
+    z-index: -1;
+    border-top: 1px solid rgba(120, 120, 120, 0.5);
+}
+
+
+/* fenced code blocks (``` ... ```) */
+.mdedit .code-block {
+    background: rgba(120, 120, 120, 0.1);
+    padding: 0 0.5em;
+    margin: 0.5em 0;
+    display: block;
+}
+
+
+/* hanging punctuation */
+#app-content .mdedit {
+    padding-left: 45px;
+    display: inline-block;
+}
+.mdedit > div > .token > .heading-hash,
+.mdedit > div > .token > .li > .list-item,
+.mdedit > div > .token > .quote-marker {
+    width: 90px;
+    margin-left: -90px;
+    display: inline-block;
+    text-align: right;
+    white-space: pre;
+}
+
+
+/* larger screen sizes */
+@media only screen and (min-width: 769px) {
+    /* use slightly more space on the left so all # signs of h3–h6 show */
+    #app-content .mdedit,
+    #app-content .note-meta {
+        padding-left: 90px;
+    }
+}
+
+
+/* empty state shown when no note is selected */
+#app-content .emptycontent .icon-notes {
+    background: url('../img/notes.svg') no-repeat center;
+    background-size: 64px;
+    opacity: .4;
+}

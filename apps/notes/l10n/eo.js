@@ -1,0 +1,13 @@
+OC.L10N.register(
+    "notes",
+    {
+    "New note" : "Nova noto",
+    "_%n word_::_%n words_" : ["%n vorto","%n vortoj"],
+    "Delete note" : "Forigi noton",
+    "Favorite" : "Favorato",
+    "Note is currently saving. Leaving the page will delete all changes!" : "La noto estas nun konservata. Forlaso de la paĝo forigos ĉiujn ŝanĝojn!",
+    "Notes" : "Notoj",
+    "No note selected" : "Neniu noto elektita",
+    "Create a note using the + button in the sidebar." : "Kreu noton per la butono + en la flanka breto."
+},
+"nplurals=2; plural=(n != 1);");
