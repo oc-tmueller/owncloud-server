@@ -1,0 +1,9 @@
+parameters:
+  inferPrivatePropertyTypeFromConstructor: true
+  bootstrapFiles:
+    - %currentWorkingDirectory%/../../lib/base.php
+  ignoreErrors:
+    -
+      message: '#Method OCA\\Files_Primary_S3\\Panels\\Admin::getPanel\(\) should return OCP\\AppFramework\\Http\\TemplateResponse|OCP\\Template but returns null.#'
+      path: lib/Panels/Admin.php
+      count: 1
