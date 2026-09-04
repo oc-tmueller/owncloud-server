@@ -26,22 +26,22 @@
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.29.6",
     "@babel/preset-env": "^7.0.0",
-    "axios": "^1.18.1",
+    "axios": "^1.20.0",
     "babel-loader": "^9.0.0",
-    "core-js": "^3.49.0",
+    "core-js": "^3.50.0",
     "css-loader": "^6.8.1",
     "easygettext": "^2.17.0",
     "expose-loader": "^5.0.1",
     "jquery": "3.6.0",
-    "less": "^4.7.0",
+    "less": "^4.9.0",
     "less-loader": "^13.0.0",
-    "sass": "^1.101.0",
+    "sass": "^1.103.1",
     "pug": "3.0.4",
     "sass-loader": "^13.3.2",
     "showdown": "^2.1.0",
     "style-loader": "^4.0.0",
     "uglify-js": "3.19.3",
-    "uikit": "3.25.20",
+    "uikit": "3.25.21",
     "underscore": "1.13.8",
     "vue": "2.7.16",
     "vue-gettext": "2.1.12",
@@ -51,11 +51,11 @@
     "vue-style-loader": "^4.1.3",
     "vue-template-compiler": "2.7.16",
     "vuex": "3.6.2",
-    "webpack": "^5.108.4"
+    "webpack": "^5.110.3"
   },
   "devDependencies": {
-    "acorn": "8.17.0",
-    "ansi-regex": "6.2.2",
+    "acorn": "8.18.0",
+    "ansi-regex": "6.3.0",
     "glob-parent": "6.0.2",
     "json-schema": "0.4.0",
     "json5": "2.2.3",
@@ -64,7 +64,7 @@
     "minimist": "1.2.8",
     "scss-tokenizer": "0.4.3",
     "set-value": "4.1.0",
-    "webpack-cli": "^7.2.1"
+    "webpack-cli": "^7.2.3"
   },
   "overrides": {
     "postcss": "^8.5.10"
