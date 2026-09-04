@@ -87,6 +87,9 @@ resolve_tag_case_collisions() {
     done
     if [ -z "$keep" ]; then
       # All reachable: no history is at stake, so pick deterministically.
+      # $group is a space-separated tag list and is meant to split here, the
+      # same way the `for t in $group` loop above splits it.
+      # shellcheck disable=SC2086
       keep="$(printf '%s\n' $group | sort | head -1)"
     fi
 
