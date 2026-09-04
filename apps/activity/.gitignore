@@ -1,0 +1,73 @@
+# just sane ignores
+.*.sw[po]
+*.bak
+*.BAK
+*~
+*.orig
+*.class
+.cvsignore
+Thumbs.db
+*.py[co]
+_darcs/*
+CVS/*
+.svn/*
+RCS/*
+*.backup*
+
+# kdevelop
+.kdev
+*.kdev4
+*.kate-swp
+
+# Lokalize
+*lokalize*
+
+# eclipse
+.project
+.settings
+
+# netbeans
+nbproject
+
+# phpStorm
+.idea
+*.iml
+
+# geany
+*.geany
+
+# Cloud9IDE
+.settings.xml
+.c9revisions
+
+# vim ex mode
+.vimrc
+
+# Mac OS
+.DS_Store
+
+# WebFinger
+.well-known
+/.buildpath
+
+# Tests - auto-generated files
+/tests/coverage*
+/tests/acceptance/output*
+/tests/output
+.phpunit.result.cache
+node_modules
+vendor-bin/**/composer.lock
+vendor/
+/build/
+tests/js/package-lock.json
+
+# php-cs-fixer
+.php-cs-fixer.cache
+# old php-cs-fixer v2
+.php_cs.cache
+
+# SonarCloud scanner
+.scannerwork
+
+# drone CI is in .drone.star, do not let someone accidentally commit a local .drone.yml
+.drone.yml
