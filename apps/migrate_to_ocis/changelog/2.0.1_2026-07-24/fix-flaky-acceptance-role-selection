@@ -1,0 +1,14 @@
+Bugfix: Select the migration role by name in the acceptance test
+
+We fixed a flaky acceptance test that intermittently failed during file
+migration with "409 Conflict: intermediate collection does not exist". oCIS
+returns the available roles in a non-deterministic order, and the test picked
+the role by index (0), which sometimes resolved to the "User Light" role. That
+role has no personal drive, so migrated users had no home folder and the file
+migration failed.
+
+The migration driver now answers the role prompt with the role label "User"
+instead of an index, which deterministically selects the standard role
+regardless of the order oCIS returns the roles in.
+
+https://github.com/owncloud/migrate_to_ocis/issues/42

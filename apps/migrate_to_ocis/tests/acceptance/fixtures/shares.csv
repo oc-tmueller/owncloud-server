@@ -1,0 +1,11 @@
+# owner,ownerpw,path,shareType,recipient,permissions,expire,password
+# shareType: 0=user, 1=group, 3=public link
+# permissions bitmask: 1=read 2=update 4=create 8=delete 16=share (15=read+write)
+# A blank field is empty (no recipient for links; no expiry; no password).
+alice,alice123,/readonly.txt,0,bob,1,,
+alice,alice123,/readwrite.txt,0,bob,15,,
+alice,alice123,/groupshare.txt,1,engineering,1,,
+alice,alice123,/link-nopass.txt,3,,1,,
+alice,alice123,/link-pass.txt,3,,1,,Secret123!
+alice,alice123,/filedrop,3,,4,,
+alice,alice123,/expiring.txt,0,bob,1,2030-12-31,

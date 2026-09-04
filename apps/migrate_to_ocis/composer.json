@@ -1,0 +1,40 @@
+{
+  "name": "owncloud/migrate-to-ocis",
+  "type": "library",
+  "description": "Migrate to ocis",
+  "require": {
+    "php": ">=8.3",
+    "ramsey/uuid": "^4.2"
+  },
+  "require-dev": {
+    "bamarni/composer-bin-plugin": "^1.8"
+  },
+  "replace": {
+    "guzzlehttp/guzzle": "*",
+    "guzzlehttp/psr7": "*",
+    "symfony/polyfill-ctype": "*",
+    "symfony/polyfill-iconv": "*",
+    "symfony/polyfill-intl-grapheme": "*",
+    "symfony/polyfill-intl-idn": "*",
+    "symfony/polyfill-intl-normalizer": "*",
+    "symfony/polyfill-mbstring": "*",
+    "symfony/polyfill-php72": "*",
+    "symfony/polyfill-php73": "*"
+  },
+  "extra": {
+    "bamarni-bin": {
+      "bin-links": false
+    }
+  },
+  "license": "Apache-2.0",
+  "config": {
+    "optimize-autoloader": true,
+    "classmap-authoritative": false,
+    "platform": {
+      "php": "8.3"
+    },
+    "allow-plugins": {
+      "bamarni/composer-bin-plugin": true
+    }
+  }
+}

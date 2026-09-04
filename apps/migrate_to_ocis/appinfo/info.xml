@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<info>
+    <id>migrate_to_ocis</id>
+    <name>Migrate ownCloud Classic to oCIS</name>
+    <summary>Migrate ownCloud Classic to ownCloud Infinite Scale.</summary>
+    <description>Migrate ownCloud Classic to ownCloud Infinite Scale.</description>
+    <licence>APL2</licence>
+    <author>ownCloud GmbH - a Kiteworks Company</author>
+    <version>3.0.0</version>
+    <namespace>MigrateToInfiniteScale</namespace>
+    <category>integration</category>
+    <dependencies>
+        <owncloud min-version="11" max-version="11"/>
+    </dependencies>
+    <screenshot>https://raw.githubusercontent.com/owncloud/screenshots/master/migrate_to_ocis/migrate_to_ocis.png</screenshot>
+    <documentation>
+        <admin>https://doc.owncloud.com/server/latest/admin_manual/maintenance/migrating_to_ocis.html</admin>
+    </documentation>
+    <commands>
+        <command>OCA\MigrateToInfiniteScale\Command\Init</command>
+        <command>OCA\MigrateToInfiniteScale\Command\Verify</command>
+        <command>OCA\MigrateToInfiniteScale\Command\MigrateUsers</command>
+        <command>OCA\MigrateToInfiniteScale\Command\AssignRole</command>
+        <command>OCA\MigrateToInfiniteScale\Command\MigrateGroups</command>
+        <command>OCA\MigrateToInfiniteScale\Command\MigrateFiles</command>
+        <command>OCA\MigrateToInfiniteScale\Command\MigrateShares</command>
+    </commands>
+</info>

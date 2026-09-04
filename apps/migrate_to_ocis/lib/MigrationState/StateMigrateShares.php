@@ -1,0 +1,380 @@
+<?php
+// SPDX-License-Identifier: Apache-2.0
+
+namespace OCA\MigrateToInfiniteScale\MigrationState;
+
+use OCA\MigrateToInfiniteScale\Helper\UserGroupFinder;
+use OCA\MigrateToInfiniteScale\Helper\UserHandler;
+use OCA\MigrateToInfiniteScale\Helper\SharePermissionMapper;
+use OCA\MigrateToInfiniteScale\MigrationState\StateFinish;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\MigrateException;
+use OCA\MigrateToInfiniteScale\MigrationState\Exceptions\UnskippableException;
+use OCA\MigrateToInfiniteScale\OCIS\ClientException;
+use OCA\MigrateToInfiniteScale\OCIS\ClientService;
+use OCA\MigrateToInfiniteScale\OCIS\Client;
+use OCA\MigrateToInfiniteScale\OCIS\DavException;
+use OCP\IUserManager;
+use OCP\IUser;
+use OCP\Share\IManager;
+use OCP\Share\IShare;
+use Symfony\Component\Console\Output\OutputInterface;
+
+class StateMigrateShares implements State {
+	/** @var ClientService */
+	private ClientService $ocisClientService;
+	/** @var UserHandler */
+	private UserHandler $userHandler;
+	/** @var UserGroupFinder */
+	private UserGroupFinder $userGroupFinder;
+	/** @var IUserManager */
+	private IUserManager $userManager;
+	/** @var IManager */
+	private IManager $shareManager;
+
+	public function __construct(
+		ClientService $ocisClientService,
+		UserHandler $userHandler,
+		UserGroupFinder $userGroupFinder,
+		IUserManager $userManager,
+		IManager $shareManager
+	) {
+		$this->ocisClientService = $ocisClientService;
+		$this->userHandler = $userHandler;
+		$this->userGroupFinder = $userGroupFinder;
+		$this->userManager = $userManager;
+		$this->shareManager = $shareManager;
+	}
+
+	/**
+	 * Migrate the shares from ownCloud Classic to oCIS. The shares include user shares,
+	 * group shares and link shares, for all the users.
+	 * This is the last meaningful state of the migration.
+	 *
+	 * Required params:
+	 * - 'adminUser' -> the oCIS' admin username
+	 * - 'adminPassword' -> the oCIS' admin password
+	 * - 'output' -> a Symfony's OutputInterface to write messages
+	 *
+	 * Move to StateFinish on success.
+	 */
+	public function migrate(array $params, Migration $migration) {
+		try {
+			$this->doMigrate($params, $migration);
+		} catch (ClientException $ex) {
+			throw new MigrateException("Migrating shares failed", 0, $ex);
+		}
+	}
+
+	/**
+	 * Migration logic
+	 *
+	 * @param array $params
+	 * @param Migration $migration
+	 * @throws ClientException
+	 */
+	private function doMigrate(array $params, Migration $migration) {
+		$client = $this->ocisClientService->newOCISClient();
+		$params['adminPassword'] = $client->tokenExchange($params['adminUser'], $params['adminPassword'], $params['adminUser']);
+		$output = $params['output'];
+
+		$roles = $client->getShareRoles($params['adminUser'], $params['adminPassword']);
+		$permMapper = new SharePermissionMapper($roles);
+		$permissionMap = $permMapper->getPermissionMap();
+
+		try {
+			$this->userGroupFinder->loadCache();
+		} catch (\UnexpectedValueException $ex) {
+			$output->writeln("<comment>Cache for the UserGroupFinder couldn't be loaded: {$ex->getMessage()}</comment>");
+			// we can keep going, albeit slowly
+		}
+
+		$this->userManager->callForUsers(function (IUser $user) use ($client, $permMapper, $permissionMap, $params) {
+			$output = $params['output'];
+			$output->writeln(" " . $user->getUserName() . "/" . $user->getEMailAddress());
+
+			if ($user->getLastLogin() === 0) {
+				$output->writeln("  User hasn't logged in. Skipping");
+				return;
+			}
+
+			if ($this->userHandler->hasBeenMigrated($params['adminUser'], $params['adminPassword'], $user)) {
+				// include the userToken in the params because it will be used
+				// in the createSharesForUser and createLinkSharesForUser methods.
+				if ($user->getUserName() === $params['adminUser']) {
+					$params['userToken'] = $params['adminPassword'];  // already got token for the admin
+				} else {
+					$params['userToken'] = $client->tokenExchange($params['adminUser'], $params['adminPassword'], $user->getUserName());
+				}
+
+				$this->createSharesForUser($this->shareManager, $user, $this->userGroupFinder, $permMapper, $permissionMap, $client, $params);
+				$this->createLinkSharesForUser($this->shareManager, $user, $client, $params);
+			} else {
+				$output->writeln("  <error>User not found in oCIS. Skipping file migration for this user</error>");
+			}
+		});
+
+		$migration->switchState(StateFinish::class);
+
+		// saving the userGroupFinder cache can be done after the state transition
+		try {
+			$this->userGroupFinder->saveCache();
+		} catch (\UnexpectedValueException $ex) {
+			$output->writeln("<comment>Cache for the UserGroupFinder couldn't be saved: {$ex->getMessage()}</comment>");
+		}
+	}
+
+	public function skip(array $params, Migration $migration) {
+		throw new UnskippableException();
+	}
+
+	public function associatedCommand(): string {
+		return 'migrate:to-ocis:migrate:shares';
+	}
+
+	/**
+	 * @param IManager $shareManager
+	 * @param IUser $user the ownCloud Classic user owning the shares
+	 * @param UserGroupFinder $finder to find and cache users and groups
+	 * @param SharePermissionMapper $permMapper
+	 * @param array $permissionMap a permission map as generated by SharePermissionMapper->getPermissionMap()
+	 * @param Client $ocisClient an oCIS client to perform the needed requests
+	 * @throws ClientException
+	 */
+	private function createSharesForUser(
+		IManager $shareManager,
+		IUser $user,
+		UserGroupFinder $finder,
+		SharePermissionMapper $permMapper,
+		array $permissionMap,
+		Client $ocisClient,
+		array $params
+	) {
+		$adminUser = $params['adminUser'];
+		$adminPassword = $params['adminPassword'];
+		$user_token = $params['userToken'];
+
+		$personalDrives = $ocisClient->getPersonalDrives($user->getUserName(), $user_token);
+		if (\count($personalDrives) !== 1) {
+			// only 1 personal drive is expected, abort otherwise
+			return false;
+		}
+
+		$shares = \array_merge(
+			$shareManager->getSharesBy($user->getUID(), \OCP\Share::SHARE_TYPE_USER, null, true, -1),
+			$shareManager->getSharesBy($user->getUID(), \OCP\Share::SHARE_TYPE_GROUP, null, true, -1)
+		);
+		$webdavClient = $ocisClient->getWebdavClientForDrive($user->getUserName(), $user_token, $personalDrives[0]);
+
+		foreach ($shares as $share) {
+			$nodePath = $share->getNode()->getPath();
+			if (\strpos($nodePath, "/{$user->getUID()}/files/") === 0) {
+				$nodePath = \substr($nodePath, \strlen("/{$user->getUID()}/files/"));
+			}
+
+			$shareExpiration = $share->getExpirationDate();
+			if ($shareExpiration) {
+				$shareExpiration = $shareExpiration->format(\DateTime::RFC3339);
+			}
+
+			$recipientType = '';
+			$recipientId = '';
+			if ($share->getShareType() === \OCP\Share::SHARE_TYPE_USER) {
+				$recipientType = 'user';
+				$recipientId = $finder->getUserById($adminUser, $adminPassword, $share->getSharedWith());
+			} elseif ($share->getShareType() === \OCP\Share::SHARE_TYPE_GROUP) {
+				$recipientType = 'group';
+				$recipientId = $finder->getGroupById($adminUser, $adminPassword, $share->getSharedWith());
+			}
+
+			if ($recipientId === null) {
+				// shareInvite will fail because we don't have recipient. Exception message is below.
+				// "failed with error: Key: 'DriveItemInvite.Recipients[0].ObjectId' Error:Field validation for 'ObjectId' failed on the 'ne' tag"
+				// Fake a jsonResponse to show a more readable message
+				$jsonResp = ['error' => ['message' => 'Recipient not found']];
+				$this->showCreatedShareForUser($share, $jsonResp, $permMapper, $params['output']);
+				continue;
+			}
+
+			// from ownCloud Classic neither files or folders can be write-only
+			// if they're shared with users or groups
+			$nodeType = $share->getNodeType();
+			$chosenRole = $permissionMap[$nodeType]['ro'];
+			if (
+				(($share->getPermissions() & \OCP\Constants::PERMISSION_UPDATE) === \OCP\Constants::PERMISSION_UPDATE) ||
+				(($share->getPermissions() & \OCP\Constants::PERMISSION_CREATE) === \OCP\Constants::PERMISSION_CREATE)
+			) {
+				$chosenRole = $permissionMap[$nodeType]['rw'];
+			}
+
+			try {
+				$ocisFileInfo = $ocisClient->getOcisFileInfo($webdavClient, $nodePath);
+				$inviteData = [
+					'driveId' => $personalDrives[0]['id'],
+					'itemId' => $ocisFileInfo['{http://owncloud.org/ns}fileid'],
+					'recipientType' => $recipientType,
+					'recipientId' => $recipientId,
+					'roleId' => $chosenRole['id'],
+					'expiration' => $shareExpiration,
+				];
+
+				$jsonResp = $ocisClient->shareInvite($user->getUserName(), $user_token, $inviteData);
+			} catch (ClientException $ex) {
+				$jsonResp = \json_decode($ex->getRawBody(), true);
+			} catch (DavException $ex) {
+				// Comes from the getOcisFileInfo.
+				// Need to fake a json response so we can go through the
+				// showCreatedShareForUser method to show a message and
+				// keep going.
+				$message = $ex->getMessage();
+				$previous = $ex->getPrevious();
+				if ($previous) {
+					$message .= ": {$previous->getMessage()}";
+				}
+				$jsonResp = ['error' => ['message' => $message]];
+			}
+
+			$this->showCreatedShareForUser($share, $jsonResp, $permMapper, $params['output']);
+		}
+	}
+
+	/**
+	 * @param IShare $share
+	 * @param array|null $response json response from the "shareInvite"
+	 * (a fake response from "getOcisFileInfo" is expected)
+	 * @param SharePermissionMapper $permMapper
+	 * @param OutputInterface $output
+	 */
+	private function showCreatedShareForUser(IShare $share, ?array $response, SharePermissionMapper $permMapper, OutputInterface $output) {
+		$sharePath = $share->getNode()->getPath();
+		$sharedWith = $share->getSharedWith();
+
+		$sharedWithStr = $sharedWith;
+		if ($share->getShareType() === \OCP\Share::SHARE_TYPE_USER) {
+			$sharedWithStr = "user '$sharedWith'";
+		} elseif ($share->getShareType() === \OCP\Share::SHARE_TYPE_GROUP) {
+			$sharedWithStr = "group '$sharedWith'";
+		}
+
+		if ($response === null || isset($response['error']['message'])) {
+			// if there is an error with the response, show the error and finish
+			$errorMessage = $response['error']['message'] ?? 'unknown';
+			$output->writeln("  $sharePath (shared with $sharedWithStr) => <error>failed with error: {$errorMessage}</error>");
+			return;
+		}
+
+		$processedData = [];
+		foreach ($response['value'] as $item) {
+			// expect only one item, but multiple items might be returned
+			$rolesDisplayNames = [];
+			foreach ($item['roles'] as $roleId) {
+				$role = $permMapper->getRoleById($roleId);
+				if ($role) {
+					$rolesDisplayNames[] = "'{$role['displayName']}'";  // include quotes for better message
+				} else {
+					$rolesDisplayNames[] = "'{$roleId}'";
+				}
+			}
+
+			$grantedDisplayName = '';
+			if (isset($item['grantedToV2']['user'])) {
+				$grantedDisplayName = $item['grantedToV2']['user']['displayName'];
+			} elseif (isset($item['grantedToV2']['group'])) {
+				$grantedDisplayName = $item['grantedToV2']['group']['displayName'];
+			}
+
+			$processedData[] = "created with roles " . \implode(',', $rolesDisplayNames) . " to '$grantedDisplayName'";
+		}
+
+		$output->writeln("  $sharePath (shared with $sharedWithStr) => " . \implode(';', $processedData));
+	}
+
+	/**
+	 * @param IManager $shareManager
+	 * @param IUser $user
+	 * @param Client $ocisClient
+	 * @param array $params
+	 */
+	private function createLinkSharesForUser(IManager $shareManager, IUser $user, Client $ocisClient, array $params) {
+		$user_token = $params['userToken'];
+
+		$personalDrives = $ocisClient->getPersonalDrives($user->getUserName(), $user_token);
+		if (\count($personalDrives) !== 1) {
+			// only 1 personal drive is expected, abort otherwise
+			return false;
+		}
+
+		$shares = $shareManager->getSharesBy($user->getUID(), \OCP\Share::SHARE_TYPE_LINK, null, true, -1);
+		$webdavClient = $ocisClient->getWebdavClientForDrive($user->getUserName(), $user_token, $personalDrives[0]);
+
+		foreach ($shares as $share) {
+			$nodePath = $share->getNode()->getPath();
+			if (\strpos($nodePath, "/{$user->getUID()}/files/") === 0) {
+				$nodePath = \substr($nodePath, \strlen("/{$user->getUID()}/files/"));
+			}
+
+			$shareExpiration = $share->getExpirationDate();
+			if ($shareExpiration) {
+				$shareExpiration = $shareExpiration->format(\DateTime::RFC3339);
+			}
+
+			$permissions = $share->getPermissions();
+			if (($permissions & \OCP\Constants::PERMISSION_READ) === \OCP\Constants::PERMISSION_READ) {
+				$ocisLinkType = 'view';
+				if (
+					($permissions & \OCP\Constants::PERMISSION_UPDATE) === \OCP\Constants::PERMISSION_UPDATE ||
+					($permissions & \OCP\Constants::PERMISSION_CREATE) === \OCP\Constants::PERMISSION_CREATE
+				) {
+					$ocisLinkType = 'edit';
+				}
+			} else {
+				$ocisLinkType = 'createOnly';
+			}
+
+			try {
+				$ocisFileInfo = $ocisClient->getOcisFileInfo($webdavClient, $nodePath);
+				$linkData = [
+					'driveId' => $personalDrives[0]['id'],
+					'itemId' => $ocisFileInfo['{http://owncloud.org/ns}fileid'],
+					'type' => $ocisLinkType,
+					'expiration' => $shareExpiration,
+					'password' => $share->getPassword(),
+				];
+
+				$jsonResp = $ocisClient->shareLink($user->getUserName(), $user_token, $linkData);
+			} catch (ClientException $ex) {
+				$jsonResp = \json_decode($ex->getRawBody(), true);
+			} catch (DavException $ex) {
+				// Comes from the getOcisFileInfo.
+				// Need to fake a json response so we can go through the
+				// showCreatedLinkShareForUser method to show a message and
+				// keep going.
+				$message = $ex->getMessage();
+				$previous = $ex->getPrevious();
+				if ($previous) {
+					$message .= ": {$previous->getMessage()}";
+				}
+				$jsonResp = ['error' => ['message' => $message]];
+			}
+
+			$this->showCreatedLinkShareForUser($share, $jsonResp, $params['output']);
+		}
+	}
+
+	/**
+	 * @param IShare $share
+	 * @param array|null $response
+	 * @param OutputInterface $output
+	 */
+	private function showCreatedLinkShareForUser(IShare $share, ?array $response, OutputInterface $output) {
+		$sharePath = $share->getNode()->getPath();
+
+		if ($response === null || isset($response['error']['message'])) {
+			// if there is an error with the response, show the error and finish
+			$errorMessage = $response['error']['message'] ?? 'unknown';
+			$output->writeln("  $sharePath (shared via link) => <error>failed with error: {$errorMessage}</error>");
+			return;
+		}
+
+		$output->writeln("  $sharePath (shared via link) => created with type '{$response['link']['type']}' on url '{$response['link']['webUrl']}'");
+	}
+}
