@@ -1,0 +1,14 @@
+{ "translations": {
+    "Preferences are saved" : "Parapëlqimet u ruajtën",
+    "Inputs must be positive integers" : "Ato çka jepen duhet të jenë numra të plotë pozitivë",
+    "Too many failed login attempts. Try again in %s." : "Shumë përpjekje të dështuara për hyrje. Riprovoni pas %s.",
+    "Too many failed attempts. Try again in %s." : "Shumë përpjekje të dështuara për hyrje. Riprovoni pas %s.",
+    "_ %n minute_::_ %n minutes_" : [" %n minute"," %n minutash"],
+    "_ %n hour_::_ %n hours_" : [" %n ore"," %n orësh"],
+    "Brute Force Protection" : "Mbrojtje Nga Hyrjet Me Zor",
+    "Count failed attempts over how many seconds?" : "Tej sa sekondash të numërohen përpjekje të dështuara për hyrje?",
+    "Ban after how many failed attempts?" : "Pas sa përpjekjesh të dështuara për hyrje të dëbohet?",
+    "Ban for how many seconds?" : "Pas sa sekondash të dëbohet?",
+    "Save settings" : "Ruaji rregullimet"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

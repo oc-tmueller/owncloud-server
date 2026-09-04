@@ -1,0 +1,16 @@
+OC.L10N.register(
+    "brute_force_protection",
+    {
+    "Preferences are saved" : "העדפות נשמרו",
+    "Inputs must be positive integers" : "הקלט חייב להיות מספרים שלמים וחיוביים",
+    "Too many failed login attempts. Try again in %s." : "יותר מדי ניסיונות התחברות שנכשלו. יש לנסות שוב עוד %s.",
+    "Too many failed attempts. Try again in %s." : "יותר מדי ניסיונות נכשלו. יש לנסות שוב בעוד %s.",
+    "_ %n minute_::_ %n minutes_" : [" %n דקה"," %n דקות"," %n דקות"],
+    "_ %n hour_::_ %n hours_" : [" %n שעה"," %n שעות"," %n שעות"," %n שעות"],
+    "Brute Force Protection" : "הגנת כח אלים (Brute Force)",
+    "Count failed attempts over how many seconds?" : "ספירת ניסיונות כושלים לאיזה תחום של שניות?",
+    "Ban after how many failed attempts?" : "לנדות אחרי כמה ניסיונות כושלים?",
+    "Ban for how many seconds?" : "מניעת גישה לכמה שניות?",
+    "Save settings" : "שמירת הגדרות"
+},
+"nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;");
