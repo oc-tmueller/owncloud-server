@@ -76,7 +76,15 @@ core_vendor=core/vendor
 
 core_doc_files=AUTHORS COPYING README.md CHANGELOG.md
 core_src_files=$(wildcard *.php) index.html db_structure.xml .htaccess .user.ini robots.txt
-core_src_dirs=apps core l10n lib occ ocs ocs-provider ocm-provider resources settings
+# The apps bundled with core. This list was previously implicit -- it existed only
+# as the !/apps/... exceptions to a `/apps*/*` .gitignore rule. Now that every app
+# lives in this repo, `apps` cannot be copied wholesale into the dist tree, so the
+# list has to be stated. These 12 and only these 12 ship with plain `make dist`.
+core_bundled_apps=comments dav federatedfilesharing federation files files_external \
+	files_sharing files_trashbin files_versions provisioning_api systemtags \
+	updatenotification
+core_bundled_app_dirs=$(addprefix apps/,$(core_bundled_apps))
+core_src_dirs=core l10n lib occ ocs ocs-provider ocm-provider resources settings
 core_test_dirs=tests
 core_all_src=$(core_src_files) $(core_src_dirs) $(core_doc_files)
 core_config_files=config/config.sample.php config/config.apps.sample.php
@@ -260,10 +268,11 @@ test-doc-links:
 #
 # Build distribution
 #
-$(dist_dir)/owncloud: $(composer_deps) $(core_vendor) $(core_all_src)
+$(dist_dir)/owncloud: $(composer_deps) $(core_vendor) $(core_all_src) $(core_bundled_app_dirs)
 	cd $(NODE_PREFIX) && $(YARN) run clean-modules
-	rm -Rf $@; mkdir -p $@/config
+	rm -Rf $@; mkdir -p $@/config $@/apps
 	cp -RL $(core_all_src) $@
+	cp -RL $(core_bundled_app_dirs) $@/apps
 	cp -R $(core_config_files) $@/config
 	find $@ -name .gitkeep -delete
 	find $@ -name .gitignore -delete
@@ -310,12 +319,43 @@ clean-dist:
 	rm -Rf $(dist_dir)
 
 #
+# Build a full server distribution: core plus the apps of one release variant.
+#
+# This is what ocrelease used to do by downloading 43 per-app release tarballs
+# and unpacking them over a core checkout. Here the apps are already present, so
+# assembly is a copy driven by tools/monorepo/release-files-11.0.0.tsv.
+#
+# VARIANT selects build/variants/<variant>.txt. RELEASE_CHANNEL is honoured by
+# the dist-dir rule this depends on -- pass it as a make argument
+# (RELEASE_CHANNEL=stable) rather than an environment variable, because a
+# Makefile assignment beats the environment and only a command-line assignment
+# beats both.
+VARIANT?=standard
+variant_file=build/variants/$(VARIANT).txt
+
+.PHONY: dist-server
+dist-server: $(dist_dir)/owncloud $(variant_file)
+	tools/monorepo/assemble-apps.sh $(dist_dir)/owncloud $(VARIANT)
+
+$(dist_dir)/owncloud-$(VARIANT).tar.bz2: dist-server
+	cd $(dist_dir) && tar cjf owncloud-$(VARIANT).tar.bz2 owncloud --format=gnu \
+		--owner=nobody --group=nogroup
+
+.PHONY: dist-server-tar
+dist-server-tar: $(dist_dir)/owncloud-$(VARIANT).tar.bz2
+
+.PHONY: dist-server-qa
+dist-server-qa: $(dist_dir)/qa/owncloud $(variant_file)
+	tools/monorepo/assemble-apps.sh $(dist_dir)/qa/owncloud $(VARIANT)
+
+#
 # Build qa distribution
 #
-$(dist_dir)/qa/owncloud: $(composer_dev_deps) $(core_vendor) $(core_all_src) $(core_test_dirs)
+$(dist_dir)/qa/owncloud: $(composer_dev_deps) $(core_vendor) $(core_all_src) $(core_bundled_app_dirs) $(core_test_dirs)
 	cd $(NODE_PREFIX) && $(YARN) run clean-modules
-	rm -Rf $@; mkdir -p $@/config
+	rm -Rf $@; mkdir -p $@/config $@/apps
 	cp -RL $(core_all_src) $@
+	cp -RL $(core_bundled_app_dirs) $@/apps
 	cp -Rf $(core_test_dirs) $@
 	cp -R $(core_config_files) $@/config
 	rm -Rf $@/lib/composer/bin; cp -R lib/composer/bin $@/lib/composer/bin
