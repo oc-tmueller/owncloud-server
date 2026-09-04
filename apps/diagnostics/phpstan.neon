@@ -1,0 +1,12 @@
+parameters:
+  inferPrivatePropertyTypeFromConstructor: true
+  bootstrapFiles:
+    - %currentWorkingDirectory%/../../lib/base.php
+  excludePaths:
+    - %currentWorkingDirectory%/appinfo/routes.php
+    - %currentWorkingDirectory%/appinfo/app.php
+  ignoreErrors:
+    -
+      message: '#Property OCA\\Diagnostics\\DataSource::\$request is never read, only written.#'
+      path: lib/DataSource.php
+      count: 1
