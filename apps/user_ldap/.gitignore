@@ -1,0 +1,24 @@
+/node_modules/
+/build/
+.php_cs.cache
+.php-cs-fixer.cache
+/tests/output/
+
+# Composer
+/vendor/
+vendor-bin/**/vendor
+vendor-bin/**/composer.lock
+
+# Tests - auto-generated files
+/tests/acceptance/output*
+.phpunit.result.cache
+
+# SonarCloud scanner
+.scannerwork
+
+# IDE Cache
+.idea/
+.vscode/
+
+# Generated from .drone.star
+.drone.yml

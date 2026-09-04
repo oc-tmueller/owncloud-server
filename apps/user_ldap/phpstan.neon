@@ -1,0 +1,28 @@
+parameters:
+  bootstrapFiles:
+    - %currentWorkingDirectory%/../../lib/base.php
+  inferPrivatePropertyTypeFromConstructor: true
+  treatPhpDocTypesAsCertain: false
+  excludePaths:
+    - %currentWorkingDirectory%/appinfo/Migrations/*.php
+  ignoreErrors:
+    -
+      message: '!Parameter #1 \$link of method OCA\\User_LDAP\\ILDAPWrapper::bind\(\) expects LDAP\\Connection, null given.!'
+      path: lib/Connection.php
+      count: 2
+    -
+      message: '!Parameter #1 \$link of method OCA\\User_LDAP\\ILDAPWrapper::errno\(\) expects LDAP\\Connection, null given.!'
+      path: lib/Connection.php
+      count: 2
+    -
+      message: '!Parameter #1 \$link of method OCA\\User_LDAP\\ILDAPWrapper::error\(\) expects LDAP\\Connection, null given.!'
+      path: lib/Connection.php
+      count: 2
+    -
+      message: "#Strict comparison using === between non-empty-string and '' will always evaluate to false.#"
+      path: lib/Connection.php
+      count: 1
+    -
+      message: '#^Dead catch [^"]* is never thrown in the try block.$#'
+      path: lib/Access.php
+      count: 1

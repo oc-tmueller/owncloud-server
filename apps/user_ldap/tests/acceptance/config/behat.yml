@@ -1,0 +1,85 @@
+default:
+  autoload:
+    '': '%paths.base%/../features/bootstrap'
+
+  suites:
+    apiUserLDAP:
+      paths:
+        - '%paths.base%/../features/apiUserLDAP'
+      context: &common_ldap_suite_context
+        parameters:
+          ldapAdminPassword: admin
+          ldapUsersOU: TestUsers
+          ldapGroupsOU: TestGroups
+          ldapInitialUserFilePath: /../../../../tests/acceptance/config/ldap-users.ldif
+      contexts:
+        - UserLdapGeneralContext:
+        - UserLdapUsersContext:
+        - FeatureContext: &common_feature_context_params
+            baseUrl:  http://localhost:8080
+            adminUsername: admin
+            adminPassword: admin
+            ocPath: apps/testing/api/v1/occ
+            regularUserPassword: 123456
+        - LoggingContext:
+        - OccContext:
+        - OccUsersGroupsContext:
+        - WebDavPropertiesContext:
+
+    apiProvisioningLDAP:
+      paths:
+        - '%paths.base%/../features/apiProvisioningLDAP'
+      context: *common_ldap_suite_context
+      contexts:
+        - UserLdapGeneralContext:
+        - UserLdapUsersContext:
+        - FeatureContext: *common_feature_context_params
+        - OccContext:
+
+    cliProvisioning:
+      paths:
+        - '%paths.base%/../features/cliProvisioning'
+      context: *common_ldap_suite_context
+      contexts:
+        - UserLdapGeneralContext:
+        - UserLdapUsersContext:
+        - FeatureContext: *common_feature_context_params
+        - EmailContext:
+        - OccContext:
+        - OccUsersGroupsContext:
+
+    webUIProvisioning:
+      paths:
+        - '%paths.base%/../features/webUIProvisioning'
+      context: *common_ldap_suite_context
+      contexts:
+        - UserLdapGeneralContext:
+        - UserLdapUsersContext:
+        - FeatureContext: *common_feature_context_params
+        - OccContext:
+        - WebUIGeneralContext:
+        - WebUILoginContext:
+        - WebUIUserContext:
+        - WebUIUsersContext:
+        - WebUIFilesContext:
+        - WebUINotificationsContext:
+
+    webUIUserLDAP:
+      paths:
+        - '%paths.base%/../features/webUIUserLDAP'
+      context: *common_ldap_suite_context
+      contexts:
+        - UserLdapGeneralContext:
+        - UserLdapUsersContext:
+        - FeatureContext: *common_feature_context_params
+        - WebUIGeneralContext:
+        - WebUILoginContext:
+        - WebUIUserContext:
+        - WebUISharingContext:
+        - WebUIFilesContext:
+        - OccContext:
+
+  extensions:
+    Cjm\Behat\StepThroughExtension: ~
+
+    rdx\behatvars\BehatVariablesExtension: ~
