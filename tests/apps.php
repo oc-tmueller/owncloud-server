@@ -37,16 +37,45 @@ function getSubclasses($parentClassName) {
 	return $classes;
 }
 
+/**
+ * The apps bundled with core, from the single list the Makefile also reads.
+ *
+ * "Lives in the apps directory" used to be a sufficient test for "bundled with
+ * core", which is what the check below used to be. It stopped being one when the
+ * 29 externally released apps moved into the same directory: this suite would
+ * then load all of their test trees into one process, which is not what it is
+ * for and does not work anyway -- with activity enabled it dies on a duplicate
+ * OCA\Activity\Tests\Unit\TestCase, declared once by loadDirectory() and once by
+ * the autoloader that a test file's use of it triggers.
+ *
+ * Each of those apps runs its own suite via `make test-php-unit` in its own
+ * directory, which is how it was run when it had its own repository.
+ */
+function bundledApps() {
+	$lines = \file(__DIR__ . '/../build/core-bundled-apps.txt', FILE_IGNORE_NEW_LINES);
+	$apps = [];
+	foreach ($lines as $line) {
+		$line = \trim(\preg_replace('/#.*/', '', $line));
+		if ($line !== '') {
+			$apps[] = $line;
+		}
+	}
+	return $apps;
+}
+
 $apps = OC_App::getEnabledApps();
+$bundled = bundledApps();
 
 foreach ($apps as $app) {
 	// skip files_external, it has its own test suite
 	if ($app === 'files_external') {
 		continue;
 	}
+	if (!\in_array($app, $bundled, true)) {
+		continue;
+	}
 	$dir = OC_App::getAppPath($app);
 
-	// only consider the "built-in" apps found in the apps directory
 	// we do not want to automatically run unit tests for extra apps
 	// that might be in a secondary apps dir like apps-external
 	if (\basename(\dirname($dir)) === "apps") {
