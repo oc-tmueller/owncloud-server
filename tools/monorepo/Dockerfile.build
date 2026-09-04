@@ -1,0 +1,51 @@
+# Build environment for `make dist-server`.
+#
+# Assembling a release needs PHP and composer (core's lib/composer plus the 10
+# apps that ship vendor/) *and* node with yarn (core's build/node_modules, whose
+# postinstall symlinks core/vendor, plus the four apps whose JS is generated).
+# owncloudci/php ships the PHP half; the node half is grafted on from the
+# official node image rather than installed via apt, so the versions are the
+# published ones.
+#
+# node 22, because it is the only version that satisfies every *enforced*
+# constraint in the tree. The declared ones look contradictory at first:
+#
+#   core/build/package.json   engines.node >= 18.20.0   (yarn -- enforced)
+#   apps/market/package.json  engines.node >=6.9 <=20   (npm  -- NOT enforced)
+#   apps/files_mediaviewer    sass-loader@17 needs >= 22.11.0 transitively
+#
+# market's upper bound is the odd one out and it is a dead letter: market builds
+# with npm, which only warns on an engines mismatch, and no .npmrc in the tree
+# sets engine-strict. files_mediaviewer builds with yarn, which does hard-fail --
+# so its transitive >= 22.11.0 is the binding constraint and node 20 cannot work.
+#
+# That the two were never reconciled is a symptom of the split repos: every app's
+# release build runs reusable-workflows/build.yml on `ubuntu-latest`, which pins
+# no node version at all, so each app shipped with whatever the runner had. One
+# repo forces the version to be stated once, here.
+#
+# composer lives in /usr/bin in the owncloudci image, so copying node's
+# /usr/local/{bin,lib} in cannot clobber it.
+#
+#   docker build -f tools/monorepo/Dockerfile.build -t oc-monorepo-build:php8.3-node22 .
+
+ARG PHP_IMAGE=owncloudci/php:8.3
+ARG NODE_IMAGE=node:22
+ARG YARN_VERSION=1.22.22
+
+FROM ${NODE_IMAGE} AS node
+
+FROM ${PHP_IMAGE}
+ARG YARN_VERSION
+
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=node /opt/yarn-v${YARN_VERSION} /opt/yarn-v${YARN_VERSION}
+
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+ && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
+ && ln -s /opt/yarn-v${YARN_VERSION}/bin/yarn /usr/local/bin/yarn \
+ && ln -s /opt/yarn-v${YARN_VERSION}/bin/yarnpkg /usr/local/bin/yarnpkg \
+ && node --version && yarn --version && composer --version && php -v | head -1
+
+WORKDIR /work

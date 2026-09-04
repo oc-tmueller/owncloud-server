@@ -13,9 +13,16 @@
 #
 # What ships for each app comes from tools/monorepo/release-files-11.0.0.tsv --
 # one reviewed allowlist -- rather than from 29 divergent per-app `dist` targets.
-# What each app has to *generate* first still comes from the app itself: `make
-# vendor` for composer deps, plus an asset_target for the four apps whose JS is
-# built rather than tracked.
+# What each app has to *generate* first also comes from that manifest, as the
+# build_targets column, but the work is still done by the app's own Makefile: we
+# say *which* targets, the app says what they mean. That step lives in
+# app-build.sh because CI needs it too, and an app prepared two different ways
+# for release and for test is a bug waiting for a release.
+#
+# The post-copy cleanup is the one thing this script does that the manifest does
+# not describe, because it is uniform: core's own dist rule already sweeps dev
+# files out of its dependency trees, and applying the same sweep to every app
+# beats 29 apps each remembering to do it (several did not).
 
 set -euo pipefail
 
@@ -52,27 +59,65 @@ install_skeleton() {
 }
 
 # ---------------------------------------------------------------------------
-# Generate what is not in git, using the app's own machinery.
+# Make the app's composer vendor/ a release artefact again.
+#
+# `vendor` is a *directory* target, so `make vendor` on an existing vendor/ does
+# nothing at all -- whatever is in it ships. That was safe while releases built
+# in a fresh clone; in one tree the dev loop gets there first. Running an app's
+# unit tests installs its dev dependencies into the same directory (the apps'
+# `vendor/bin/phpunit` target is a plain `composer install`, no --no-dev), and a
+# release built afterwards shipped bamarni/composer-bin-plugin and a dev
+# autoloader. Measured, not hypothetical: it is what the first complete-variant
+# parity run found in openidconnect and migrate_to_ocis, and it is the same
+# defect the reference already has in twofactor_totp, reached the same way.
+#
+# So remove it and let the app's own `composer install --no-dev` rebuild it from
+# its committed lock. Only the exact target `vendor` is treated this way -- the
+# 9 composer apps. user_ldap's `vendor/ui-multiselect` is a downloaded js
+# dependency with no dev/prod distinction, and the js targets (build, js-deps,
+# js-templates) compile tracked sources with a pinned toolchain, so neither can
+# carry dev state across from a test run.
 # ---------------------------------------------------------------------------
-build_app() {
-  local app="$1" paths="$2" asset_target="$3"
+clean_composer_vendor() {
+  local app="$1" build_targets="$2" t
+  for t in $build_targets; do
+    [ "$t" = vendor ] || continue
+    log "[$app] removing vendor/ so composer rebuilds it without dev dependencies"
+    rm -rf "$ROOT/apps/$app/vendor"
+  done
+}
 
-  # `make vendor` is defined identically by 28 of the 29 apps. Only run it when
-  # the app actually ships a vendor/ directory -- otherwise we would build
-  # dependencies just to throw them away.
-  case " $paths " in
-    *" vendor "*)
-      log "[$app] make vendor (composer release deps)"
-      make -C "$ROOT/apps/$app" vendor
-      ;;
-  esac
+# ---------------------------------------------------------------------------
+# ... and then prove it, on the tree that actually ships.
+#
+# The cleanup above fixes the one way we know dev dependencies got in. This
+# catches every other way, including an app whose build target is not `vendor`
+# at all: composer records what it installed in vendor/composer/installed.json,
+# so the shipped tree can be asked directly instead of trusted. Cheap -- one php
+# invocation per app that ships a vendor/ -- and it fails the build rather than
+# waiting for a parity run against a reference that may itself be wrong.
+# ---------------------------------------------------------------------------
+assert_no_dev_deps() {
+  local app="$1" target="$2"
+  local json="$target/vendor/composer/installed.json"
 
-  if [ "$asset_target" != "-" ]; then
-    log "[$app] make $asset_target (generated JS assets)"
-    # Unquoted on purpose: files_mediaviewer needs two targets in order.
-    # shellcheck disable=SC2086
-    make -C "$ROOT/apps/$app" $asset_target
-  fi
+  [ -f "$json" ] || return 0
+  # The $j and $argv in here are PHP variables, so the single quotes are the
+  # point: the shell must not touch them.
+  # shellcheck disable=SC2016
+  php -r '
+    $j = json_decode(file_get_contents($argv[1]), true);
+    if ($j === null) {
+      fwrite(STDERR, "unreadable: {$argv[1]}\n");
+      exit(1);
+    }
+    $dev = $j["dev-package-names"] ?? [];
+    if (!empty($j["dev"]) || $dev !== []) {
+      fwrite(STDERR, sprintf("  installed with dev dependencies: %s\n",
+        $dev === [] ? "\"dev\": true" : implode(", ", $dev)));
+      exit(1);
+    }' "$json" \
+    || die "[$app] refusing to ship vendor/: see above, and check whether a test run installed into it"
 }
 
 # ---------------------------------------------------------------------------
@@ -89,6 +134,12 @@ copy_app() {
   done
   [ "$missing" -eq 0 ] || die "[$app] allowlisted paths missing from the tree (see above)"
 
+  # Clear the destination first, as ocrelease's resolve step does before unpacking
+  # each app tarball. Without it a rebuild layers the new tree over the old one and
+  # anything the previous run shipped survives forever -- which is exactly the kind
+  # of difference the parity check exists to catch, appearing only on rebuilds.
+  # None of the 12 bundled apps is in the manifest, so this cannot eat core's work.
+  rm -rf "$target"
   mkdir -p "$target"
   # shellcheck disable=SC2086
   tar -C "$ROOT/apps/$app" -cf - $paths | tar -C "$target" -xf -
@@ -98,6 +149,49 @@ copy_app() {
   # shipped an l10n/.tx/config and richdocuments shipped .gitkeep and no-php.
   find "$target" \( -name .gitkeep -o -name .gitignore -o -name no-php \) -delete
   find "$target" -type d -name .tx -prune -exec rm -rf {} +
+
+  # Handlebars sources are build *inputs*: the js-templates target compiles them
+  # into one templates.js, and shipping the .handlebars alongside it ships the
+  # source of a compiled artefact. customgroups deletes them in its own dist rule
+  # after copying, for exactly that reason; only customgroups has any today, but
+  # the reason is not app-specific so neither is the rule.
+  find "$target" -name '*.handlebars' -delete
+
+  sweep_dep_trees "$app" "$target"
+  assert_no_dev_deps "$app" "$target"
+}
+
+# ---------------------------------------------------------------------------
+# Dev files inside the dependency trees an app ships.
+#
+# Core's dist rule already sweeps its own lib/composer and core/vendor with this
+# list; the apps were each meant to do the same and 5 of the 10 that ship a
+# vendor/ actually did (`find $@/vendor -type d -iname Test?`, in four slightly
+# different spellings). Doing it here once covers all of them.
+#
+# Scoped to the dependency trees rather than the whole app directory, and with
+# core's `-name bin` dropped, because an app's own files are allowlisted content:
+# migrate_to_ocis ships bin/rclone_linux_amd64 deliberately, and the reference
+# keeps vendor/bin/* too -- which is why ocrelease's chmod is scoped to depth 3.
+# ---------------------------------------------------------------------------
+sweep_dep_trees() {
+  local app="$1" target="$2" d
+  for d in vendor lib/composer js/vendor; do
+    [ -d "$target/$d" ] || continue
+    # -iname for test/tests: core spells them lowercase, the app rules use
+    # `-iname Test?`, and phpseclib et al. ship a capitalised `Tests`.
+    find "$target/$d" \( \
+      -iname test -o \
+      -iname tests -o \
+      -name examples -o \
+      -name demo -o \
+      -name demos -o \
+      -name doc -o \
+      -name travis -o \
+      -iname '*.sh' -o \
+      -iname '*.exe' \
+      \) -print0 | xargs -0 rm -rf
+  done
 }
 
 # ---------------------------------------------------------------------------
@@ -116,7 +210,7 @@ set_permissions() {
 }
 
 main() {
-  local apps=() app row kind tree asset_target paths n=0
+  local apps=() app row paths build_targets n=0
 
   while read -r app; do
     case "$app" in '#'* | '') continue ;; esac
@@ -134,9 +228,12 @@ main() {
 
     row="$(awk -F'\t' -v a="$app" '!/^#/ && $1 == a' "$MANIFEST")"
     [ -n "$row" ] || die "[$app] no row in $(basename "$MANIFEST")"
-    IFS=$'\t' read -r _ kind tree asset_target paths <<< "$row"
+    # What to build is app-build.sh's business -- CI calls that too -- but the
+    # target names are needed here to know whether a composer vendor/ is in play.
+    IFS=$'\t' read -r _ _ _ build_targets paths <<< "$row"
 
-    build_app "$app" "$paths" "$asset_target"
+    clean_composer_vendor "$app" "$build_targets"
+    "$ROOT/tools/monorepo/app-build.sh" "$app"
     copy_app "$app" "$paths"
     n=$((n + 1))
   done

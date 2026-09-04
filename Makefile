@@ -80,9 +80,8 @@ core_src_files=$(wildcard *.php) index.html db_structure.xml .htaccess .user.ini
 # as the !/apps/... exceptions to a `/apps*/*` .gitignore rule. Now that every app
 # lives in this repo, `apps` cannot be copied wholesale into the dist tree, so the
 # list has to be stated. These 12 and only these 12 ship with plain `make dist`.
-core_bundled_apps=comments dav federatedfilesharing federation files files_external \
-	files_sharing files_trashbin files_versions provisioning_api systemtags \
-	updatenotification
+# It lives in a file rather than here because tests/apps.php needs the same list.
+core_bundled_apps=$(shell sed -e 's/#.*//' build/core-bundled-apps.txt)
 core_bundled_app_dirs=$(addprefix apps/,$(core_bundled_apps))
 core_src_dirs=core l10n lib occ ocs ocs-provider ocm-provider resources settings
 core_test_dirs=tests
@@ -149,8 +148,15 @@ help:
 #
 # ownCloud core PHP dependencies
 #
+# Composer describes the root package in vendor/composer/installed.php by asking
+# git what version is checked out, which upstream meant the release tag. Pin it
+# from version.php instead, so a release build reports 'v11.0.0' whether or not
+# HEAD happens to sit on the tag. The apps need the same treatment for a stronger
+# reason -- see assemble-apps.sh -- and there the version comes from info.xml.
+composer_root_version=v$(shell sed -n "s/^\$$OC_VersionString = '\([^']*\)'.*/\1/p" version.php)
+
 $(composer_deps): composer.json composer.lock
-	php $(COMPOSER_BIN) install --no-dev
+	COMPOSER_ROOT_VERSION=$(composer_root_version) php $(COMPOSER_BIN) install --no-dev
 
 $(composer_dev_deps): composer.json composer.lock
 	php $(COMPOSER_BIN) install

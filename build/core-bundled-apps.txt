@@ -1,0 +1,21 @@
+# The apps bundled with core: the 12 that ship with a plain `make dist` and whose
+# tests belong to core's own suite.
+#
+# The list used to be implicit twice over -- as the !/apps/... exceptions to a
+# `/apps*/*` .gitignore rule, and as tests/apps.php's assumption that anything
+# sitting in apps/ is built in. Neither assumption survives 29 externally
+# released apps moving into the same directory, so the list is stated once here
+# and read by both consumers: the Makefile (which copies exactly these into the
+# dist tree) and tests/apps.php (which loads exactly these apps' tests).
+comments
+dav
+federatedfilesharing
+federation
+files
+files_external
+files_sharing
+files_trashbin
+files_versions
+provisioning_api
+systemtags
+updatenotification

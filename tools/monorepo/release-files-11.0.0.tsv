@@ -1,6 +1,6 @@
 # Per-app release file allowlist for the 11.0.0 monorepo build.
 #
-# Columns: app_id  makefile_kind  upstream_tree  asset_target  paths
+# Columns: app_id  makefile_kind  upstream_tree  build_targets  paths
 #
 # Derived from each app's own Makefile by tools/monorepo/extract-allowlists.py
 # (the `<prefix>all_src` list for "modern" apps, the `cp --parents -r` list of
@@ -19,43 +19,48 @@
 #
 # Paths are relative to the app directory and may be nested (notes ships only
 # js/public and js/vendor, not all of js/). `vendor` appears where the app
-# bundles composer dependencies inside the signed app directory.
+# bundles composer dependencies inside the signed app directory -- except for
+# user_ldap, where vendor/ is a *bower* output directory. That exception is why
+# this column cannot be inferred from the paths, see below.
 #
-# asset_target is the app's own make target that generates JS assets which are
-# not tracked in git ('-' for the 25 apps that need none). This is the one piece
-# of per-app build divergence that genuinely cannot be unified: the four apps
-# that need it use handlebars, webpack, and npm-in-a-subdir respectively. File
-# selection is unified in this manifest; asset generation stays with the app.
+# build_targets are the app's own make targets that produce content not tracked
+# in git, run in the order given ('-' for the 16 apps that need none). Derived
+# from the prerequisites of each app's own dist rule together with its
+# composer_deps / bower_deps / js_deps variables, which is the app's own
+# statement of what must exist before its files are copied.
 #
-# Composer deps are NOT listed here: an app needs `make vendor` exactly when
-# 'vendor' appears in its paths, which is derivable, and 28 of 29 apps define
-# that target identically.
+# Stating them beats inferring them. The obvious inference -- "run `make vendor`
+# when 'vendor' is in paths", true for 9 of the 10 apps that ship a vendor/ --
+# is wrong for user_ldap, whose dist rule depends on $(bower_deps) =
+# vendor/ui-multiselect and whose composer_deps is empty. Inferring there both
+# skipped the 49 bower files that must ship and added 12 composer autoload files
+# that must not.
 activity	modern	clean	-	CHANGELOG.md CONTRIBUTING.md README.md appinfo css img js l10n lib templates
 announcementcenter	legacy	raw	-	appinfo css img js l10n lib templates
 brute_force_protection	legacy	raw	-	CHANGELOG.md LICENSE README.md appinfo img js l10n lib templates
-configreport	modern	clean	-	CHANGELOG.md LICENSE README.md appinfo js lib templates vendor
+configreport	modern	clean	vendor	CHANGELOG.md LICENSE README.md appinfo js lib templates vendor
 customgroups	modern	clean	js-templates	CHANGELOG.md README.md appinfo css img js l10n lib templates
 diagnostics	modern	clean	-	CHANGELOG.md LICENSE README.md appinfo css img js l10n lib templates
 drawio	modern	clean	-	COPYING.txt appinfo css img js l10n lib screenshot.png templates
 encryption	modern	clean	-	CHANGELOG.md LICENSE README.md appinfo css img js l10n lib templates
 external	modern	clean	-	CHANGELOG.md LICENSE README.md ajax appinfo css img index.php js l10n lib settings.php templates
 files_antivirus	legacy	raw	-	CHANGELOG.md COPYING appinfo css img js l10n lib templates
-files_external_dropbox	modern	clean	-	CHANGELOG.md LICENSE README.md appinfo js l10n lib vendor
+files_external_dropbox	modern	clean	vendor	CHANGELOG.md LICENSE README.md appinfo js l10n lib vendor
 files_external_ftp	legacy	raw	-	CHANGELOG.md LICENSE README.md appinfo l10n lib
 files_mediaviewer	modern	clean	js-deps build-js	CHANGELOG.md LICENSE README.md appinfo js l10n templates
 files_pdfviewer	legacy	raw	-	CHANGELOG.md README.md appinfo css img js l10n lib templates
-files_primary_s3	legacy	raw	-	CHANGELOG.md LICENSE appinfo css js l10n lib templates vendor
-files_texteditor	legacy	raw	-	appinfo controller css img js l10n vendor
+files_primary_s3	legacy	raw	vendor	CHANGELOG.md LICENSE appinfo css js l10n lib templates vendor
+files_texteditor	legacy	raw	vendor	appinfo controller css img js l10n vendor
 firstrunwizard	legacy	clean	-	CHANGELOG.md COPYING ajax appinfo css img js l10n lib templates wizard.php
 guests	modern	clean	-	CHANGELOG.md LICENSE README.md appinfo js l10n lib templates
-market	modern	clean	js/market.bundle.js	CHANGELOG.md LICENSE README.md appinfo img js lib templates vendor
-migrate_to_ocis	modern	clean	-	README.md appinfo bin lib vendor
+market	modern	clean	vendor js/market.bundle.js	CHANGELOG.md LICENSE README.md appinfo img js lib templates vendor
+migrate_to_ocis	modern	clean	vendor	README.md appinfo bin lib vendor
 notes	legacy	clean	build	CHANGELOG.md COPYING appinfo controller css db img js/public js/vendor l10n service templates
 notifications	legacy	raw	-	CHANGELOG.md COPYING README.md appinfo css img js l10n lib templates
-oauth2	modern	clean	-	AUTHORS.md CHANGELOG.md COPYING README.md appinfo css img js l10n lib templates vendor
-openidconnect	modern	clean	-	LICENSE README.md appinfo img l10n lib vendor
+oauth2	modern	clean	vendor	AUTHORS.md CHANGELOG.md COPYING README.md appinfo css img js l10n lib templates vendor
+openidconnect	modern	clean	vendor	LICENSE README.md appinfo img l10n lib vendor
 password_policy	modern	clean	-	CHANGELOG.md README.md appinfo css img js l10n lib templates
 richdocuments	modern	clean	-	README.md admin.php appinfo assets css img js l10n lib settings.php templates
-twofactor_totp	modern	clean	-	AUTHORS.md CHANGELOG.md COPYING README.md appinfo js l10n lib templates vendor
+twofactor_totp	modern	clean	vendor	AUTHORS.md CHANGELOG.md COPYING README.md appinfo js l10n lib templates vendor
 user_external	modern	clean	-	CHANGELOG.md README.md appinfo img lib
-user_ldap	modern	clean	-	CHANGELOG.md LICENSE README.md appinfo css img js l10n lib templates vendor
+user_ldap	modern	clean	vendor/ui-multiselect	CHANGELOG.md LICENSE README.md appinfo css img js l10n lib templates vendor

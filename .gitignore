@@ -11,6 +11,7 @@
 /assets
 /build/composer.phar
 /build/dist
+/build/parity-*.txt
 /build/phan.phar
 /build/phpstan.phar*
 /core/vendor
@@ -19,7 +20,8 @@
 # Apps now live in this repo, so the old "ignore /apps*/* except these 12"
 # allowlist is gone: every app under /apps is tracked. What is ignored instead is
 # each app's build output. The bundled-app list itself did not disappear, it moved
-# to core_bundled_apps in the Makefile, where it is used rather than implied.
+# to build/core-bundled-apps.txt, where it is used rather than implied -- by the
+# Makefile's dist rule and by tests/apps.php, which need to agree.
 #
 # These patterns are deliberately anchored one level under the app directory:
 # .gitignore's * does not cross /, so apps/*/vendor/ ignores an app's composer
