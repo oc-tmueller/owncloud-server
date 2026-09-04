@@ -1,0 +1,19 @@
+/node_modules/
+/build/
+/vendor/
+.php_cs.cache
+.drone.yml
+/tests/output/
+
+/js/
+/css/
+/.DS_Store
+
+/l10n/files_mediaviewer.pot
+*.po
+
+# Generated from .drone.star
+.drone.yml
+
+# IDE Cache
+.idea

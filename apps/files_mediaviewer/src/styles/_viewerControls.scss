@@ -1,0 +1,129 @@
+.viewer__control {
+	cursor: pointer;
+	border: 0 none;
+	width: 24px;
+	height: 24px;
+	text-indent: -9999px;
+	background: {
+		color: transparent;
+		size: contain;
+		repeat: no-repeat;
+		cursor: pointer;
+	}
+
+	&[disabled] {
+		opacity: .25;
+	}
+
+	&__nametag {
+		display: block;
+		position: absolute;
+		color: white;
+		transform: translate(-50%, -190%);
+		top: 0;
+		left: 50%;
+		white-space: nowrap;
+		font-size: 16px;
+		text-shadow: 
+			1px  1px 1px black,
+			1px -1px 1px black,
+			-1px  1px 1px black,
+			-1px -1px 1px black;
+	}
+
+	&__count {
+		color: white;
+
+		@media (max-width: 360px) {
+			display: none;
+		}
+	}
+
+	// -- Video controls
+
+	&__scrubber {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: -1px;
+		height: 10px;
+		width: 100%;
+		transform: translateY(-100%);
+		transition: height .25s;
+		background: rgba(0, 0, 0, 0.5);
+
+		// Juicebar
+		> div {
+			position: absolute;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			width: 0%;
+			background-color: red;
+		}
+	}
+}
+
+.viewer__video-overlay {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	width: 10vw;
+	height: 10vw;
+	z-index: 1;
+	border: 0 none;
+	opacity: .5;
+	border-radius: 50%;
+	background: {
+		color: rgba(black, .666);
+		repeat: no-repeat;
+		size: contain;
+		position: center center;
+		size: calc(100% + 12px);
+	}
+}
+
+.viewer__controls {
+	position: absolute;
+	display: flex;
+	background: rgba(black, .5);
+	left: 50%;
+	bottom: 0;
+	transform: translate(-50%, -25%);
+	z-index: 160;
+	min-width: 600px;
+	justify-content: space-between;
+	align-items: center;
+	transition: width .25s;
+	box-sizing: border-box;
+
+	padding: {
+		left: 15px;
+		right: 15px;
+	}
+
+	&:not(:hover) {
+		opacity: .5;
+	}
+
+	&__subgroup {
+		display: flex;
+		justify-content: space-around;
+		align-items: center;
+		padding: 16px 0;
+
+		> * {
+			margin: 0 5px;
+		}
+	}
+
+	// --- Enlarge juicebar on hovering over controlbar
+	&:hover > .viewer__control__scrubber {
+		height: 15px;
+	}
+
+	@media (max-width: 650px) {
+		min-width: 100%
+	}
+}

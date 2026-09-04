@@ -1,0 +1,37 @@
+$namespace : '#files_mediaviewer';
+$grid-gutter: 10px;
+
+// Colors
+
+$color : (
+	primary: #1d2d44,
+	secondary: #567298,
+	
+	gray: #DCDCDC,
+	lightgray: #F1F1F1,
+	
+	error : red,
+	error-border : #FED6D6,
+	error-background : #FFF0F0,
+	
+	success :#3e5530,
+	success-background :#def7de,
+	success-border :#bbe2b7,
+);
+
+$core-image-path : '../../../core/img';
+$app-image-path : '../img';
+
+#{$namespace} {
+	@import "../../node_modules/swiper/dist/css/swiper.min.css";
+
+	@import "base";
+	@import "transitions";
+	@import "helper";
+	@import "icons";
+	@import "swiper";
+
+	@import "spinner";
+	@import "viewer";
+	@import "viewerControls";
+}

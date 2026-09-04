@@ -1,0 +1,19 @@
+OC.L10N.register(
+    "files_mediaviewer",
+    {
+    "Close" : "ປິດ",
+    "Download" : "ດາວໂຫຼດ",
+    "Fullscreen" : "ເຕັມຈໍ",
+    "Loading" : "ກຳລັງໂຫຼດ...",
+    "Mute" : "ປິດສຽງ",
+    "Next" : "ຕໍ່ໄປ",
+    "of" : "ຈາກ",
+    "Play" : "ຫຼິ້ນ",
+    "Previous" : "ກ່ອນໜ້າ",
+    "Replay" : "ຫຼິ້ນຄືນ",
+    "Rotate 90° counterclockwise" : "ໝຸນ 90° ທວນເຂັມໂມງ",
+    "Zoom in" : "ຊູມເຂົ້າ",
+    "Zoom out" : "ຊູມອອກ",
+    "Open in Media Viewer" : "ເປີດໃນຕົວເບິ່ງມີເດຍ"
+},
+"nplurals=1; plural=0;");

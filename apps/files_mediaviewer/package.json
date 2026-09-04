@@ -1,0 +1,53 @@
+{
+  "name": "files_mediaviewer",
+  "version": "1.0.1",
+  "description": "Viewer for pictures and videos integrated in the files app",
+  "dependencies": {
+    "@types/moment-duration-format": "^2.2.7",
+    "easygettext": "^2.17.0",
+    "moment-duration-format": "^2.3.2",
+    "svelte": "^5.x",
+    "swiper": "^12.1.2",
+    "vue": "^2.7.16",
+    "vue-router": "^3.6.5",
+    "vuex": "^3.6.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.6",
+    "@babel/preset-env": "^7.28.5",
+    "babel-loader": "^10.1.1",
+    "css-loader": "^7.1.4",
+    "sass": "^1.101.0",
+    "sass-loader": "^17.0.0",
+    "style-loader": "^4.0.0",
+    "vue-loader": "^15.11.1",
+    "vue-template-compiler": "^2.7.16",
+    "webpack": "^5.108.4",
+    "webpack-cli": "^7.2.1"
+  },
+  "scripts": {
+    "build": "webpack --progress --mode=production",
+    "watch": "webpack --watch --mode=development"
+  },
+  "resolutions": {
+    "babel-loader/loader-utils": "^2.0.4",
+    "nth-check": "^2.1.1",
+    "serialize-javascript": "^7.0.5",
+    "postcss": "^8.5.10"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/owncloud/files_mediaviewer.git"
+  },
+  "keywords": [
+    "owncloud",
+    "media",
+    "gallery"
+  ],
+  "author": "Felix Heidecke",
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/owncloud/files_mediaviewer/issues"
+  },
+  "homepage": "https://github.com/owncloud/files_mediaviewer#readme"
+}
