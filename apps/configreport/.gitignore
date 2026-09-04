@@ -1,0 +1,19 @@
+.idea/
+.php_cs.cache
+.php-cs-fixer.cache
+build/
+
+# Composer
+vendor/
+vendor-bin/**/vendor
+vendor-bin/**/composer.lock
+
+# Tests - auto-generated files
+tests/output
+.phpunit.result.cache
+
+# SonarCloud scanner
+.scannerwork
+
+# Generated from .drone.star
+.drone.yml

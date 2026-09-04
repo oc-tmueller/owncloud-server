@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<info>
+	<id>configreport</id>
+	<name>Admin Config Report</name>
+	<namespace>ConfigReport</namespace>
+	<licence>AGPL</licence>
+	<description>Generate a Config Report</description>
+	<summary>Generate a Config Report</summary>
+	<author>owncloud.org</author>
+	<version>0.4.2</version>
+	<default_enable/>
+	<types>
+		<filesystem/>
+	</types>
+	<dependencies>
+		<owncloud min-version="11" max-version="11" />
+		<php min-version="8.3" />
+	</dependencies>
+	<default_enable/>
+	<commands>
+		<command>OCA\ConfigReport\Command\ConfigReport</command>
+		<command>OCA\ConfigReport\Command\SendTelemetry</command>
+	</commands>
+	<settings>
+		<admin>OCA\ConfigReport\AdminPanel</admin>
+	</settings>
+	<background-jobs>
+		<job>OCA\ConfigReport\Telemetry\BackgroundJob</job>
+	</background-jobs>
+	<category>tools</category>
+	<documentation>
+		<admin>https://doc.owncloud.com/server/next/admin_manual/troubleshooting/providing_logs_and_config_files.html#generate-a-config-report</admin>
+	</documentation>
+</info>
