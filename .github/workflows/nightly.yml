@@ -1,0 +1,108 @@
+name: Nightly
+
+# The two things that are too expensive to run on every pull request but too
+# important to run never: the release-parity proof, and every app's unit suite
+# against every supported database.
+
+on:
+  schedule:
+    # 03:20 UTC, off the hour to avoid the scheduler's peak.
+    - cron: '20 3 * * *'
+  workflow_dispatch:
+    inputs:
+      reference-release:
+        description: 'owncloud/core release tag to prove parity against'
+        required: false
+        type: string
+        default: 'v11.0.0'
+
+permissions:
+  contents: read
+
+jobs:
+  # The full external-app set, from the same script the PR gate uses: with no
+  # BASE_SHA it reports every app, so the list cannot drift from the manifest.
+  all-apps:
+    name: All apps
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.affected.outputs.apps }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: List apps
+        id: affected
+        run: tools/monorepo/affected-apps.sh
+
+  app-unit-full:
+    name: App PHP Unit
+    needs: all-apps
+    uses: ./.github/workflows/app-unit.yml
+    with:
+      apps: ${{ needs.all-apps.outputs.apps }}
+      php-versions: '["8.3"]'
+      databases: '["sqlite","mysql:8.0","mariadb:10.6","postgres:10.21"]'
+
+  parity:
+    name: Release parity (${{ matrix.variant }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: standard
+            asset: 'owncloud-11.0.0.tar.bz2'
+          # The complete tarball's asset name carries the build date, so it is
+          # matched as a glob rather than named.
+          - variant: complete
+            asset: 'owncloud-complete-*.tar.bz2'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Build inside the repo's own build image rather than assembling a
+      # toolchain out of setup-php and setup-node steps. The image is where the
+      # node/php/yarn versions are argued for (tools/monorepo/Dockerfile.build),
+      # and it is what a developer runs locally -- a parity check that builds in a
+      # different environment than the release does is not proving much.
+      - name: Build the build image
+        run: |
+          docker build -f tools/monorepo/Dockerfile.build -t oc-monorepo-build .
+
+      - name: Download the reference tarball
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE: ${{ inputs.reference-release || 'v11.0.0' }}
+          ASSET: ${{ matrix.asset }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/ref"
+          gh release download "$RELEASE" -R owncloud/core -p "$ASSET" -D "$RUNNER_TEMP"
+          # ASSET is unquoted on purpose: for the complete variant it is the glob
+          # owncloud-complete-*.tar.bz2 and the shell has to expand it. The
+          # directory part stays quoted, which is where a space could appear.
+          # shellcheck disable=SC2086
+          tar -xjf "$RUNNER_TEMP"/$ASSET -C "$RUNNER_TEMP/ref"
+          test -d "$RUNNER_TEMP/ref/owncloud"
+
+      - name: Assemble the distribution
+        env:
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          # clean-composer-deps first, and not as a tidiness gesture: core's
+          # $(composer_deps) target is the lib/composer *directory*, so once
+          # anything has run `composer install` with dev dependencies -- which
+          # `make install-composer-deps` does, despite the name -- make sees the
+          # directory already exists and never re-runs the --no-dev install. The
+          # dist would then ship phpunit. This is how twofactor_totp shipped its
+          # dev dependencies in 11.0.0.
+          docker run --rm -v "$PWD:/work" -w /work -e VARIANT oc-monorepo-build \
+            sh -c 'make clean-composer-deps && make dist-server VARIANT="$VARIANT" RELEASE_CHANNEL=stable'
+
+      - name: Prove parity
+        env:
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          docker run --rm -v "$PWD:/work" -v "$RUNNER_TEMP/ref:/ref" -w /work -e VARIANT \
+            oc-monorepo-build \
+            sh -c 'tools/monorepo/parity.sh "$VARIANT" /ref/owncloud'

@@ -1,0 +1,56 @@
+# Whether each external app's `make test-php-unit` is expected to pass in the
+# monorepo's PR gate, and if not, why.
+#
+# Columns: app_id  php_unit  upstream_gate  note
+#
+#   php_unit=yes           runs and passes from a plain checkout. 21 apps.
+#   php_unit=none          the app has no PHP unit tests to run. 2 apps.
+#   php_unit=broken        it has a test-php-unit target that cannot work. 1 app.
+#   php_unit=needs-service it needs a server the PR gate does not start
+#                          (clamav, an FTP server, Dropbox credentials, S3,
+#                          samba). 5 apps.
+#
+# Measured, not guessed: every row is the result of running the target in the
+# build image against one installed server (work/logs/appsweep.log), 2277 tests
+# across the 21 passing apps.
+#
+# The upstream_gate column is the falsifiable half. It records which workflow --
+# recovered from each app's own .github/ before this repo removed it -- actually
+# ran php-unit for that app before the merge. Note what it says: of the 8 apps
+# that do not pass here, 6 had NO php-unit job at all in their own repository.
+# Their suites were not broken by the monorepo; the monorepo is what noticed.
+# drawio is the clearest case -- its Makefile asks phpunit for a testsuite named
+# `openidconnect-unit` and the app has no phpunit.xml, so the target has never
+# been able to run, and nothing was watching.
+#
+# Consumed by .github/workflows/app-unit.yml, which skips the non-yes rows and
+# says so in the run summary rather than silently reporting green.
+activity	yes	php-unit.yml	-
+announcementcenter	yes	php-unit.yml	-
+brute_force_protection	yes	php-unit.yml	-
+configreport	yes	php-unit.yml	1 test skipped upstream too
+customgroups	yes	php-unit.yml	target comes from its rules/tests.mk include
+diagnostics	yes	php-unit.yml	-
+drawio	broken	none	asks for --testsuite openidconnect-unit and ships no phpunit.xml
+encryption	yes	php-unit.yml	-
+external	none	none	no tests/ directory and no test-php-unit target
+files_antivirus	needs-service	none	AvirWrapperTest needs a clamav daemon
+files_external_dropbox	needs-service	none	storage tests need Dropbox credentials
+files_external_ftp	needs-service	php-unit-ftp.yml	needs proftpd/vsftpd; the app forked its own copy of php-unit.yml for it
+files_mediaviewer	none	none	JS-only app, no PHP tests
+files_pdfviewer	yes	php-unit.yml	-
+files_primary_s3	needs-service	php-unit.yml	needs scality or ceph S3; its target also runs core's whole autotest suite, not its own
+files_texteditor	yes	php-unit.yml	-
+firstrunwizard	yes	php-unit.yml	-
+guests	yes	php-unit.yml	-
+market	yes	php-unit.yml	-
+migrate_to_ocis	yes	php-unit.yml	-
+notes	yes	php-unit.yml	-
+notifications	yes	php-unit.yml	-
+oauth2	yes	php-unit.yml	-
+openidconnect	yes	php-unit.yml	-
+password_policy	yes	php-unit.yml	-
+richdocuments	yes	php-unit.yml	-
+twofactor_totp	yes	php-unit.yml	-
+user_external	needs-service	none	smbTest needs samba
+user_ldap	yes	php-unit.yml	-

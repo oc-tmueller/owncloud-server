@@ -32,6 +32,74 @@ jobs:
     with:
       php-versions: '["8.3"]'
 
+  # Which of the 29 external apps this change can break. A change confined to
+  # apps/<id>/ costs one job; anything else -- lib/, core/, one of the 12 bundled
+  # apps -- costs all 29. See tools/monorepo/affected-apps.sh for why the second
+  # half is not softened.
+  changes:
+    name: Affected apps
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.affected.outputs.apps }}
+      fanout: ${{ steps.affected.outputs.fanout }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The diff needs both endpoints, so the default shallow clone will not do.
+          fetch-depth: 0
+
+      - name: Determine affected apps
+        id: affected
+        env:
+          # On a new branch github.event.before is all zeros and on a force-push
+          # the old tip may be gone; the script treats an unresolvable base as
+          # "test everything" rather than "test nothing".
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: tools/monorepo/affected-apps.sh
+
+      - name: Summary
+        env:
+          APPS: ${{ steps.affected.outputs.apps }}
+          FANOUT: ${{ steps.affected.outputs.fanout }}
+        run: |
+          {
+            echo "### Affected apps"
+            echo
+            echo "- fan-out (core-level change): \`$FANOUT\`"
+            echo "- apps: \`$APPS\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  app-unit:
+    name: App PHP Unit
+    needs: changes
+    if: needs.changes.outputs.apps != '[]'
+    uses: ./.github/workflows/app-unit.yml
+    with:
+      apps: ${{ needs.changes.outputs.apps }}
+      php-versions: '["8.3"]'
+
+  # Stands in for the release-time check each app repository used to have:
+  # reusable-workflows' release.yml refused to publish when the tag and
+  # appinfo/info.xml disagreed. One tag per server release leaves that check
+  # nothing to compare, so the version is checked here instead. Cheap enough to
+  # run unconditionally -- it reads 41 info.xml files and one diff.
+  app-versions:
+    name: App versions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Check app versions
+        env:
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: tools/monorepo/check-app-versions.sh
+
   calens:
     name: Changelog lint
     runs-on: ubuntu-latest
