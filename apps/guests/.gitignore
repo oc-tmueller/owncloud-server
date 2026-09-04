@@ -1,0 +1,26 @@
+/.idea
+/node_modules
+/build/
+
+*.bundle.js
+npm-debug.log
+package-lock.json
+yarn-error.log
+.php_cs.cache
+.php-cs-fixer.cache
+
+# Composer
+vendor/
+vendor-bin/**/vendor
+vendor-bin/**/composer.lock
+
+# Tests - auto-generated files
+tests/output
+tests/acceptance/output*
+.phpunit.result.cache
+
+# SonarCloud scanner
+.scannerwork
+
+# Generated from .drone.star
+.drone.yml
