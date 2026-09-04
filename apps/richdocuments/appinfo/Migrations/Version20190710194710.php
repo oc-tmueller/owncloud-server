@@ -1,0 +1,26 @@
+<?php
+
+namespace OCA\richdocuments\Migrations;
+
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
+use OCP\Migration\ISchemaMigration;
+
+/**
+ * Auto-generated migration step: Please modify to your needs!
+ */
+class Version20190710194710 implements ISchemaMigration {
+	public function changeSchema(Schema $schema, array $options) {
+		$prefix = $options['tablePrefix'];
+
+		$table = $schema->getTable("{$prefix}richdocuments_wopi");
+
+		$fileidColumn = $table->getColumn('fileid');
+		if ($fileidColumn) {
+			/* @phan-suppress-next-line PhanDeprecatedClassConstant */
+			$fileidColumn->setType(Type::getType(Types::BIGINT));
+			$fileidColumn->setOptions(['length' => 20]);
+		}
+	}
+}

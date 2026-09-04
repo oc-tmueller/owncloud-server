@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<info>
+	<id>richdocuments</id>
+	<name>Collabora Online</name>
+	<description><![CDATA[Collabora Online allows you to to work with all kinds of office documents directly in your browser.
+
+This application can connect to a Collabora Online (or other) server (WOPI-like Client). ownCloud is the WOPI Host. Please read the documentation to learn more about that.
+
+You can also edit your documents off-line with the Collabora Office app from the **[Android](https://play.google.com/store/apps/details?id=com.collabora.libreoffice)** and **[iOS](https://apps.apple.com/us/app/collabora-office/id1440482071)** store.]]></description>
+	<summary>Edit office documents directly in your browser.</summary>
+	<licence>AGPL</licence>
+	<version>4.3.0</version>
+	<author>Collabora Productivity based on work of Frank Karlitschek, Victor Dubiniuk</author>
+	<bugs>https://github.com/owncloud/richdocuments/issues</bugs>
+	<repository type="git">https://github.com/owncloud/richdocuments.git</repository>
+	<category>office</category>
+	<category>integration</category>
+	<types>
+		<prevent_group_restriction/>
+	</types>
+	<dependencies>
+		<owncloud min-version="11" max-version="11" />
+        <php min-version="8.3" />
+	</dependencies>
+	<screenshot>https://owncloud.com/wp-content/uploads/2016/07/code_v2_writer-1-1024x576.png</screenshot>
+	<screenshot>https://owncloud.com/wp-content/uploads/2016/07/code_v2_calc-1-1024x576.png</screenshot>
+	<screenshot>https://owncloud.com/wp-content/uploads/2016/07/code_v2_impress-1-1024x576.png</screenshot>
+	<ocsid>174727</ocsid>
+	<use-migrations>true</use-migrations>
+	<background-jobs>
+		<job>OCA\Richdocuments\BackgroundJob\CleanupExpiredWopiTokens</job>
+	</background-jobs>
+	<settings>
+		<admin>OCA\Richdocuments\Panels\Admin</admin>
+		<personal>OCA\Richdocuments\Panels\Personal</personal>
+	</settings>
+</info>

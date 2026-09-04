@@ -1,0 +1,12 @@
+parameters:
+  inferPrivatePropertyTypeFromConstructor: true
+  bootstrapFiles:
+    - %currentWorkingDirectory%/../../lib/base.php
+  excludePaths:
+    - %currentWorkingDirectory%/appinfo/Migrations/*.php
+    - %currentWorkingDirectory%/appinfo/routes.php
+  ignoreErrors:
+    -
+      message: '#^Dead catch [^"]* is never thrown in the try block.$#'
+      path: lib/Controller/WopiController.php  
+      count: 1
