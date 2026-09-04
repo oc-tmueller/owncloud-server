@@ -1,0 +1,27 @@
+composer.phar
+
+build/
+
+# Composer
+vendor/
+vendor-bin/**/vendor
+vendor-bin/**/composer.lock
+.php_cs.cache
+.php-cs-fixer.cache
+
+# Tests - auto-generated files
+.phpunit.result.cache
+/tests/acceptance/output*
+tests/output
+
+# Ignore NetBeans project
+/nbproject/
+
+# SonarCloud scanner
+.scannerwork
+
+# Generated from .drone.star
+.drone.yml
+
+# IDE Cache
+.idea
