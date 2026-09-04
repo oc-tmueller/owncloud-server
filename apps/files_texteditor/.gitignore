@@ -3,8 +3,10 @@
 .php_cs.cache
 .php-cs-fixer.cache
 
-# Composer
-vendor/
+# Composer. Anchored to the app root, as notes/.gitignore already does:
+# unanchored, `vendor/` also ignores the js/vendor/ tree this app tracks
+# and ships.
+/vendor/
 vendor-bin/**/vendor
 vendor-bin/**/composer.lock
 

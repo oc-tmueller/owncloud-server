@@ -1,0 +1,53 @@
+# Apps assembled into the "complete" release variant, in spec order.
+# Generated from tools/monorepo/apps-11.0.0.tsv. Consumed by `make dist-server VARIANT=complete`.
+#
+# example-files is listed here but is not an app: it replaces core/skeleton.
+#
+activity
+announcementcenter
+brute_force_protection
+configreport
+customgroups
+diagnostics
+drawio
+encryption
+example-files
+external
+files_antivirus
+files_external_dropbox
+files_external_ftp
+files_mediaviewer
+files_pdfviewer
+files_primary_s3
+files_texteditor
+firstrunwizard
+guests
+market
+migrate_to_ocis
+notes
+notifications
+oauth2
+openidconnect
+password_policy
+richdocuments
+twofactor_totp
+user_external
+user_ldap
+
+# Not in this repository: the following apps live in private repos and are out of
+# scope for this POC. A full "complete" build adds them. parity.sh asserts that
+# EXACTLY these are the apps missing versus the published tarball.
+# admin_audit
+# files_classifier
+# files_ldap_home
+# files_lifecycle
+# firewall
+# graphapi
+# metrics
+# ransomware_protection
+# systemtags_management
+# theme-enterprise
+# user_shibboleth
+# windows_network_drive
+# wopi
+# workflow

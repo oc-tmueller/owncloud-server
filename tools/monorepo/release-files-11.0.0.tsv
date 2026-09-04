@@ -1,0 +1,51 @@
+# Per-app release file allowlist for the 11.0.0 monorepo build.
+#
+# Columns: app_id  makefile_kind  upstream_tree  paths
+#
+# Derived from each app's own Makefile by tools/monorepo/extract-allowlists.py
+# (the `<prefix>all_src` list for "modern" apps, the `cp --parents -r` list of
+# the `appstore` target for "legacy" ones), then validated top-level entry by
+# top-level entry against the published owncloud-complete-20260730.tar.bz2:
+#
+#   upstream_tree=clean (21) -- the allowlist reproduces the shipped app
+#       directory EXACTLY. Nothing added, nothing missed.
+#   upstream_tree=raw (8) -- the shipped directory is a strict SUPERSET. These
+#       apps' Makefiles build their release tarball with a `source` target that
+#       tars the whole working tree, so 11.0.0 ships their .git/ (packfiles
+#       included), tests/, .github/, Makefile, composer.json and vendor-bin/.
+#       The allowlist here is the intended payload; a monorepo build drops the
+#       cruft, which is an expected and desirable parity difference, asserted
+#       as such by tools/monorepo/parity.sh.
+#
+# Paths are relative to the app directory and may be nested (notes ships only
+# js/public and js/vendor, not all of js/). `vendor` appears where the app
+# bundles composer dependencies inside the signed app directory.
+activity	modern	clean	CHANGELOG.md CONTRIBUTING.md README.md appinfo css img js l10n lib templates
+announcementcenter	legacy	raw	appinfo css img js l10n lib templates
+brute_force_protection	legacy	raw	CHANGELOG.md LICENSE README.md appinfo img js l10n lib templates
+configreport	modern	clean	CHANGELOG.md LICENSE README.md appinfo js lib templates vendor
+customgroups	modern	clean	CHANGELOG.md README.md appinfo css img js l10n lib templates
+diagnostics	modern	clean	CHANGELOG.md LICENSE README.md appinfo css img js l10n lib templates
+drawio	modern	clean	COPYING.txt appinfo css img js l10n lib screenshot.png templates
+encryption	modern	clean	CHANGELOG.md LICENSE README.md appinfo css img js l10n lib templates
+external	modern	clean	CHANGELOG.md LICENSE README.md ajax appinfo css img index.php js l10n lib settings.php templates
+files_antivirus	legacy	raw	CHANGELOG.md COPYING appinfo css img js l10n lib templates
+files_external_dropbox	modern	clean	CHANGELOG.md LICENSE README.md appinfo js l10n lib vendor
+files_external_ftp	legacy	raw	CHANGELOG.md LICENSE README.md appinfo l10n lib
+files_mediaviewer	modern	clean	CHANGELOG.md LICENSE README.md appinfo js l10n templates
+files_pdfviewer	legacy	raw	CHANGELOG.md README.md appinfo css img js l10n lib templates
+files_primary_s3	legacy	raw	CHANGELOG.md LICENSE appinfo css js l10n lib templates vendor
+files_texteditor	legacy	raw	appinfo controller css img js l10n vendor
+firstrunwizard	legacy	clean	CHANGELOG.md COPYING ajax appinfo css img js l10n lib templates wizard.php
+guests	modern	clean	CHANGELOG.md LICENSE README.md appinfo js l10n lib templates
+market	modern	clean	CHANGELOG.md LICENSE README.md appinfo img js lib templates vendor
+migrate_to_ocis	modern	clean	README.md appinfo bin lib vendor
+notes	legacy	clean	CHANGELOG.md COPYING appinfo controller css db img js/public js/vendor l10n service templates
+notifications	legacy	raw	CHANGELOG.md COPYING README.md appinfo css img js l10n lib templates
+oauth2	modern	clean	AUTHORS.md CHANGELOG.md COPYING README.md appinfo css img js l10n lib templates vendor
+openidconnect	modern	clean	LICENSE README.md appinfo img l10n lib vendor
+password_policy	modern	clean	CHANGELOG.md README.md appinfo css img js l10n lib templates
+richdocuments	modern	clean	README.md admin.php appinfo assets css img js l10n lib settings.php templates
+twofactor_totp	modern	clean	AUTHORS.md CHANGELOG.md COPYING README.md appinfo js l10n lib templates vendor
+user_external	modern	clean	CHANGELOG.md README.md appinfo img lib
+user_ldap	modern	clean	CHANGELOG.md LICENSE README.md appinfo css img js l10n lib templates vendor

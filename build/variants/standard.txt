@@ -1,0 +1,14 @@
+# Apps assembled into the "standard" release variant, in spec order.
+# Generated from tools/monorepo/apps-11.0.0.tsv. Consumed by `make dist-server VARIANT=standard`.
+#
+# example-files is listed here but is not an app: it replaces core/skeleton.
+#
+configreport
+encryption
+example-files
+external
+files_mediaviewer
+firstrunwizard
+market
+notifications
+user_external

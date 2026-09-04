@@ -16,20 +16,21 @@
 /core/vendor
 /updater/
 
-# ignore all apps except core ones
-/apps*/*
-!/apps/comments
-!/apps/dav
-!/apps/files
-!/apps/federatedfilesharing
-!/apps/federation
-!/apps/files_external
-!/apps/files_sharing
-!/apps/files_trashbin
-!/apps/files_versions
-!/apps/provisioning_api
-!/apps/systemtags
-!/apps/updatenotification
+# Apps now live in this repo, so the old "ignore /apps*/* except these 12"
+# allowlist is gone: every app under /apps is tracked. What is ignored instead is
+# each app's build output. The bundled-app list itself did not disappear, it moved
+# to core_bundled_apps in the Makefile, where it is used rather than implied.
+#
+# These patterns are deliberately anchored one level under the app directory:
+# .gitignore's * does not cross /, so apps/*/vendor/ ignores an app's composer
+# vendor dir without touching the js/vendor/ trees that notes, files_pdfviewer
+# and files_texteditor legitimately track and ship.
+/apps/*/vendor/
+/apps/*/node_modules/
+/apps/*/build/
+/apps/*/vendor-bin/*/vendor/
+/apps/*/.phpunit.result.cache
+/apps/*/.scannerwork/
 /apps/files_external/3rdparty/irodsphp/PHPUnitTest
 /apps/files_external/3rdparty/irodsphp/web
 /apps/files_external/3rdparty/irodsphp/prods/test
@@ -99,8 +100,9 @@ nbproject
 # Mac OS
 .DS_Store
 
-# WebFinger
-.well-known
+# WebFinger. Anchored: unanchored, this rule reaches down and ignores the
+# .well-known/owncloud-codesigning-challenge.txt that 24 apps track.
+/.well-known
 /.buildpath
 
 # Tests
