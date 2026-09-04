@@ -27,6 +27,7 @@ caused by having many repositories in any deep sense — they were caused by hav
 | One repository builds the release | `make dist-server VARIANT=standard` → 11,362 files; `VARIANT=complete` → 19,935. |
 | The build matches what shipped | `parity.sh standard` **passes**: 11,362 files, every difference in an asserted class, 0 unclassified. |
 | Complete variant matches, minus the private apps | `parity.sh complete` **passes**: 19,935 files, all of them present in the reference, 0 unclassified, and 11,136 reference-only files accounted for as exactly the 14 named private apps. |
+| The parity check is not vacuous | Planting one file the reference cannot have makes it report `unclassified 1` and exit 1. Worth stating, because a gate whose assertion list has grown to 11 classes is worth suspecting. |
 | Any app's tests run from one checkout | 21 of 29 app suites pass, 2,277 tests, no core checkout and no `core-ref`. |
 | CI scopes work to what changed | A diff under `apps/notes/` → `["notes"]`. A diff under `lib/private/` → all 29. |
 | The result runs | `owncloud-docker/server`'s `v24.04/Dockerfile.multiarch`, unmodified, built with `TARBALL_URL` pointed at the monorepo tarball: `/status.php` reports `versionstring 11.0.0`, and the authenticated OCS API lists **21 enabled apps** — 9 of them monorepo-built external ones, with `notifications` contributing its own capability block. |
