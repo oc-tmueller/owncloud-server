@@ -1,0 +1,21 @@
+/build
+/l10n/.transifexrc
+.php_cs.cache
+.php-cs-fixer.cache
+
+# Composer
+vendor/
+vendor-bin/**/vendor
+vendor-bin/**/composer.lock
+
+# Tests - auto-generated files
+tests/output
+tests/unit/config.json
+.phpunit.result.cache
+
+# SonarCloud scanner
+.scannerwork
+
+# Generated from .drone.star
+.drone.yml
+.idea

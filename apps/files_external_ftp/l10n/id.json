@@ -1,0 +1,10 @@
+{ "translations": {
+    "FTP (Fly)" : "FTP (Terbang)",
+    "Username" : "Nama pengguna",
+    "Password" : "Kata Sandi",
+    "Host" : "Host",
+    "Root" : "Root",
+    "Port" : "Port",
+    "Secure ftps://" : "Secure ftps://"
+},"pluralForm" :"nplurals=1; plural=0;"
+}

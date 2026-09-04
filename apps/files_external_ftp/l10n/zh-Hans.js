@@ -1,0 +1,12 @@
+OC.L10N.register(
+    "files_external_ftp",
+    {
+    "FTP (Fly)" : "FTP（飛）",
+    "Username" : "用戶名稱",
+    "Password" : "密碼",
+    "Host" : "主机",
+    "Root" : "根目錄",
+    "Port" : "端口",
+    "Secure ftps://" : "安全 ftps://"
+},
+"nplurals=1; plural=0;");
