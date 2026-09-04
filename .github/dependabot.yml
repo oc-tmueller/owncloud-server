@@ -1,3 +1,20 @@
+# Core's three entries are unchanged. The two apps/* entries replace the 29
+# per-app dependabot.yml files the merge deleted, which between them declared 27
+# composer manifests, 7 npm manifests and 29 github-actions manifests -- the
+# last of which is now core's own root entry, because the apps have no workflows
+# of their own any more.
+#
+# `directories:` with a glob rather than 34 `directory:` entries: the app set
+# changes, and a manifest that has to be added to this file by hand is a
+# manifest that stops being updated the day someone forgets. It also matches
+# nothing harmful -- an app without a composer.json or package.json is simply
+# skipped.
+#
+# What this does NOT cover, in either the old world or this one: the 114
+# apps/*/vendor-bin/*/composer.json files (php-cs-fixer, phan, phpstan, behat,
+# php_codesniffer, once per app). The per-app configs pointed at "/" only, so
+# those dev toolchains were never dependabot's business, and making them so here
+# would open a flood of pull requests rather than fix a regression.
 version: 2
 updates:
   - package-ecosystem: composer
@@ -41,3 +58,47 @@ updates:
         update-types:
           - minor
           - patch
+
+  # The 27 apps with a composer.json. Grouped per app rather than per ecosystem:
+  # a pull request that bumps one library across 27 apps at once is one that
+  # nobody can review, and only the touched app's suite runs anyway.
+  - package-ecosystem: composer
+    directories:
+      - "/apps/*"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: '22:00'
+      timezone: Etc/UTC
+    # Higher than core's 5 because this entry stands for 27 manifests. Still a
+    # limit rather than none: dependabot counts open pull requests, and 27 apps
+    # times an unbounded limit is a Monday nobody wants.
+    open-pull-requests-limit: 10
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    commit-message:
+      prefix: chore
+      include: scope
+
+  # The 7 apps with a package.json: activity, customgroups, files_mediaviewer,
+  # guests, market, richdocuments, user_ldap.
+  - package-ecosystem: npm
+    directories:
+      - "/apps/*"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: '22:00'
+      timezone: Etc/UTC
+    open-pull-requests-limit: 10
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    commit-message:
+      prefix: chore
+      include: scope
