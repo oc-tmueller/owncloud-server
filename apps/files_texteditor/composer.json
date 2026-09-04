@@ -1,0 +1,26 @@
+{
+  "name": "owncloud/files_texteditor",
+  "config" : {
+    "platform": {
+      "php": "8.3"
+    },
+    "allow-plugins": {
+      "bamarni/composer-bin-plugin": true
+    }
+  },
+  "replace": {
+    "firebase/php-jwt": "^7"
+  },
+  "require": {
+    "php": ">=8.3"
+  },
+  "require-dev": {
+    "bamarni/composer-bin-plugin": "^1.9",
+    "roave/security-advisories": "dev-latest"
+  },
+  "extra": {
+    "bamarni-bin": {
+      "bin-links": false
+    }
+  }
+}
